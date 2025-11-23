@@ -39,8 +39,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-    <PackageReference Include="System.Text.Json" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" />
     <PackageReference Include="System.Reactive.Core" />
     <PackageReference Include="System.Reactive.Compatibility" />
     <PackageReference Include="Castle.Core" />
