@@ -11,73 +11,73 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 #nullable enable
-namespace DurableTask.Core
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
-    using System.Runtime.Serialization;
-    using DurableTask.Core.Exceptions;
-    using Newtonsoft.Json;
+namespace DurableTask.Core;
 
-    // NOTE: This class is very similar to https://github.com/microsoft/durabletask-dotnet/blob/main/src/Abstractions/TaskFailureDetails.cs.
-    //       Any functional changes to this class should be mirrored in that class and vice versa.
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
+using DurableTask.Core.Exceptions;
+
+// NOTE: This class is very similar to https://github.com/microsoft/durabletask-dotnet/blob/main/src/Abstractions/TaskFailureDetails.cs.
+//       Any functional changes to this class should be mirrored in that class and vice versa.
+
+/// <summary>
+/// Details of an activity, orchestration, or entity operation failure.
+/// </summary>
+[Serializable]
+public class FailureDetails : IEquatable<FailureDetails>
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FailureDetails"/> class.
+    /// </summary>
+    /// <param name="errorType">The name of the error, which is expected to the the namespace-qualified name of the exception type.</param>
+    /// <param name="errorMessage">The message associated with the error, which is expected to be the exception's <see cref="Exception.Message"/> property.</param>
+    /// <param name="stackTrace">The exception stack trace.</param>
+    /// <param name="innerFailure">The inner cause of the failure.</param>
+    /// <param name="isNonRetriable">Whether the failure is non-retriable.</param>
+    /// <param name="properties">Additional properties associated with the failure.</param>
+    [JsonConstructor]
+    public FailureDetails(string errorType, string errorMessage, string? stackTrace, FailureDetails? innerFailure, bool isNonRetriable, IDictionary<string, object?>? properties = null)
+    {
+        this.ErrorType = errorType;
+        this.ErrorMessage = errorMessage;
+        this.StackTrace = stackTrace;
+        this.InnerFailure = innerFailure;
+        this.IsNonRetriable = isNonRetriable;
+        this.Properties = properties;
+    }
 
     /// <summary>
-    /// Details of an activity, orchestration, or entity operation failure.
+    /// Initializes a new instance of the <see cref="FailureDetails"/> class.
     /// </summary>
-    [Serializable]
-    public class FailureDetails : IEquatable<FailureDetails>
+    /// <param name="errorType">The name of the error, which is expected to the the namespace-qualified name of the exception type.</param>
+    /// <param name="errorMessage">The message associated with the error, which is expected to be the exception's <see cref="Exception.Message"/> property.</param>
+    /// <param name="stackTrace">The exception stack trace.</param>
+    /// <param name="innerFailure">The inner cause of the failure.</param>
+    /// <param name="isNonRetriable">Whether the failure is non-retriable.</param>
+    public FailureDetails(string errorType, string errorMessage, string? stackTrace, FailureDetails? innerFailure, bool isNonRetriable)
+        : this(errorType, errorMessage, stackTrace, innerFailure, isNonRetriable, properties:null)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FailureDetails"/> class.
-        /// </summary>
-        /// <param name="errorType">The name of the error, which is expected to the the namespace-qualified name of the exception type.</param>
-        /// <param name="errorMessage">The message associated with the error, which is expected to be the exception's <see cref="Exception.Message"/> property.</param>
-        /// <param name="stackTrace">The exception stack trace.</param>
-        /// <param name="innerFailure">The inner cause of the failure.</param>
-        /// <param name="isNonRetriable">Whether the failure is non-retriable.</param>
-        /// <param name="properties">Additional properties associated with the failure.</param>
-        [JsonConstructor]
-        public FailureDetails(string errorType, string errorMessage, string? stackTrace, FailureDetails? innerFailure, bool isNonRetriable, IDictionary<string, object?>? properties = null)
-        {
-            this.ErrorType = errorType;
-            this.ErrorMessage = errorMessage;
-            this.StackTrace = stackTrace;
-            this.InnerFailure = innerFailure;
-            this.IsNonRetriable = isNonRetriable;
-            this.Properties = properties;
-        }
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FailureDetails"/> class.
-        /// </summary>
-        /// <param name="errorType">The name of the error, which is expected to the the namespace-qualified name of the exception type.</param>
-        /// <param name="errorMessage">The message associated with the error, which is expected to be the exception's <see cref="Exception.Message"/> property.</param>
-        /// <param name="stackTrace">The exception stack trace.</param>
-        /// <param name="innerFailure">The inner cause of the failure.</param>
-        /// <param name="isNonRetriable">Whether the failure is non-retriable.</param>
-        public FailureDetails(string errorType, string errorMessage, string? stackTrace, FailureDetails? innerFailure, bool isNonRetriable)
-            : this(errorType, errorMessage, stackTrace, innerFailure, isNonRetriable, properties:null)
-        {
-        }
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FailureDetails"/> class from an exception object.
+    /// </summary>
+    /// <param name="e">The exception used to generate the failure details.</param>
+    /// <param name="innerFailure">The inner cause of the failure.</param>
+    public FailureDetails(Exception e, FailureDetails innerFailure)
+        : this(e, innerFailure, properties: null)
+    {
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FailureDetails"/> class from an exception object.
-        /// </summary>
-        /// <param name="e">The exception used to generate the failure details.</param>
-        /// <param name="innerFailure">The inner cause of the failure.</param>
-        public FailureDetails(Exception e, FailureDetails innerFailure)
-            : this(e, innerFailure, properties: null)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FailureDetails"/> class from an exception object.
-        /// </summary>
-        /// <param name="e">The exception used to generate the failure details.</param>
-        public FailureDetails(Exception e)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FailureDetails"/> class from an exception object.
+    /// </summary>
+    /// <param name="e">The exception used to generate the failure details.</param>
+    public FailureDetails(Exception e)
             : this(e, properties: null)
         {
         }
