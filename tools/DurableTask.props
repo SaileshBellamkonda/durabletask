@@ -5,9 +5,12 @@
     <DebugType Condition="'$(Configuration)'=='Release'">pdbonly</DebugType>
     <DebugSymbols>True</DebugSymbols>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
     <!-- See https://github.com/Azure/durabletask/issues/428 -->
     <NoWarn>NU5125,NU5048</NoWarn>
+    <!-- Suppress warnings that will be addressed in Phase 2 (JSON migration) and Phase 3 (Nullable) -->
+    <NoWarn>$(NoWarn);SYSLIB0051;CS0672;CS0618;CS8073;CS8632;CS8765;CS8767;CA2022</NoWarn>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     <!-- SourceLink Settings-->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

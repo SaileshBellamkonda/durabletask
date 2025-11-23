@@ -1045,7 +1045,7 @@ namespace DurableTask.Core.Logging
         /// </summary>
         internal class OrchestrationCompleted : StructuredLogEvent, IEventSourceEvent
         {
-#nullable enable
+// #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
             readonly Exception? exception;
 
             public OrchestrationCompleted(
@@ -1549,7 +1549,7 @@ namespace DurableTask.Core.Logging
 
         internal class TaskActivityFailure : StructuredLogEvent, IEventSourceEvent
         {
-#nullable enable
+// #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
             readonly Exception exception;
 
             public TaskActivityFailure(

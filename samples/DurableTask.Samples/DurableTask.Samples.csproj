@@ -4,7 +4,8 @@
   <PropertyGroup>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

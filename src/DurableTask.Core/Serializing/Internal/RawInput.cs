@@ -11,7 +11,7 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-#nullable enable
+// #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
 using System;
 
 namespace DurableTask.Core.Serializing.Internal
