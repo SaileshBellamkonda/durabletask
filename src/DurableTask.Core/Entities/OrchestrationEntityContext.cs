@@ -11,17 +11,15 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 #nullable enable
-namespace DurableTask.Core.Entities
-{
-    using DurableTask.Core.Entities;
-    using DurableTask.Core.Entities.EventFormat;
-    using DurableTask.Core.Entities.OperationFormat;
-    using DurableTask.Core.Exceptions;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
+namespace DurableTask.Core.Entities;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using DurableTask.Core.Entities.EventFormat;
+using DurableTask.Core.Entities.OperationFormat;
+using DurableTask.Core.Exceptions;
 
     /// <summary>
     /// Tracks the entity-related state of an orchestration. 
@@ -366,13 +364,16 @@ namespace DurableTask.Core.Entities
         /// <returns></returns>
         public OperationResult DeserializeEntityResponseEvent(string eventContent)
         {
-            var responseMessage = new ResponseMessage();
-
             // for compatibility, we deserialize in a way that is resilient to any typename presence/absence/mismatch
+            ResponseMessage? responseMessage;
             try
             {
                 // restore the scheduler state from the input
-                JsonConvert.PopulateObject(eventContent, responseMessage, Serializer.InternalSerializerSettings);
+                responseMessage = JsonSerializer.Deserialize<ResponseMessage>(eventContent, Serializer.InternalSerializerOptions);
+                if (responseMessage == null)
+                {
+                    throw new EntitySchedulerException("Failed to deserialize entity response: result was null.");
+                }
             }
             catch (Exception exception)
             {
@@ -387,4 +388,3 @@ namespace DurableTask.Core.Entities
             };
         }
     }
-}

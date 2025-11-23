@@ -11,14 +11,14 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core
-{
-    using DurableTask.Core.Common;
-    using DurableTask.Core.Exceptions;
-    using DurableTask.Core.Serializing;
-    using Newtonsoft.Json.Linq;
-    using System;
-    using System.Threading.Tasks;
+namespace DurableTask.Core;
+
+using System;
+using System.Text.Json.Nodes;
+using System.Threading.Tasks;
+using DurableTask.Core.Common;
+using DurableTask.Core.Exceptions;
+using DurableTask.Core.Serializing;
 
     /// <summary>
     ///     Base class for TaskActivity.
@@ -102,9 +102,9 @@ namespace DurableTask.Core
         /// <returns>Serialized output from the execution</returns>
         public override async Task<string> RunAsync(TaskContext context, string input)
         {
-            TInput parameter = default(TInput);
+            TInput? parameter = default(TInput);
 
-            var jArray = Utils.ConvertToJArray(input);
+            var jArray = Utils.ConvertToJsonArray(input);
 
             int parameterCount = jArray.Count;
             if (parameterCount > 1)
@@ -115,14 +115,14 @@ namespace DurableTask.Core
             
             if (parameterCount == 1)
             {
-                JToken jToken = jArray[0];
-                if (jToken is JValue jValue)
+                JsonNode? jNode = jArray[0];
+                if (jNode is JsonValue jValue)
                 {
-                    parameter = jValue.ToObject<TInput>();
+                    parameter = jValue.Deserialize<TInput>();
                 }
-                else
+                else if (jNode != null)
                 {
-                    string serializedValue = jToken.ToString();
+                    string serializedValue = jNode.ToJsonString();
                     parameter = DataConverter.Deserialize<TInput>(serializedValue);
                 }
             }
@@ -189,4 +189,3 @@ namespace DurableTask.Core
             return Task.FromResult(Execute(context, input));
         }
     }
-}

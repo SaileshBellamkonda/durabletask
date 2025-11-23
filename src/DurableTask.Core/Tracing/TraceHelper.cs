@@ -11,23 +11,22 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 #nullable enable
-namespace DurableTask.Core.Tracing
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Runtime.ExceptionServices;
-    using DurableTask.Core.Common;
-    using DurableTask.Core.History;
-    using Newtonsoft.Json;
-    using DurableTask.Core.Entities.EventFormat;
-    using DurableTask.Core.Entities;
-    using DurableTask.Core.Entities.OperationFormat;
-    using System.Linq;
+namespace DurableTask.Core.Tracing;
 
-    /// <summary>
-    ///     Helper class for logging/tracing
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Runtime.ExceptionServices;
+using DurableTask.Core.Common;
+using DurableTask.Core.Entities;
+using DurableTask.Core.Entities.EventFormat;
+using DurableTask.Core.Entities.OperationFormat;
+using DurableTask.Core.History;
+
+/// <summary>
+///     Helper class for logging/tracing
     /// </summary>
     public class TraceHelper
     {
@@ -904,4 +903,3 @@ namespace DurableTask.Core.Tracing
             }
         }
     }
-}

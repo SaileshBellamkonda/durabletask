@@ -23,6 +23,7 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using DurableTask.Core.Exceptions;
@@ -124,6 +125,16 @@ public static class Utils
     public static object? DeserializeFromJson(JsonSerializerOptions options, string jsonString, Type type)
     {
         return JsonSerializer.Deserialize(jsonString, type, options);
+    }
+
+    internal static JsonArray ConvertToJsonArray(string input)
+    {
+        JsonNode? node = JsonNode.Parse(input);
+        if (node is JsonArray array)
+        {
+            return array;
+        }
+        throw new ArgumentException("Input is not a JSON array", nameof(input));
     }
 
 
@@ -728,4 +739,3 @@ public static class Utils
             public string? FullyQualifiedTypeName { get; set; }
         }
     }
-}

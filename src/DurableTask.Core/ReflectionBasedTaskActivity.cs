@@ -11,17 +11,17 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
-    using System.Threading.Tasks;
-    using DurableTask.Core.Common;
-    using DurableTask.Core.Exceptions;
-    using DurableTask.Core.Serializing;
-    using Newtonsoft.Json.Linq;
+namespace DurableTask.Core;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text.Json.Nodes;
+using System.Threading.Tasks;
+using DurableTask.Core.Common;
+using DurableTask.Core.Exceptions;
+using DurableTask.Core.Serializing;
 
     /// <summary>
     /// Reflection based task activity for interface based task activities
@@ -81,7 +81,7 @@ namespace DurableTask.Core
         /// <returns>Serialized output from the execution</returns>
         public override async Task<string> RunAsync(TaskContext context, string input)
         {
-            var jArray = Utils.ConvertToJArray(input);
+            var jArray = Utils.ConvertToJsonArray(input);
 
             int parameterCount = jArray.Count - this.genericArguments.Length;
             ParameterInfo[] methodParameters = MethodInfo.GetParameters();
@@ -182,20 +182,23 @@ namespace DurableTask.Core
             return $"{MethodInfo.ReflectedType?.FullName}.{MethodInfo.Name}";
         }
 
-        private Type[] GetGenericTypeArguments(JArray jArray)
+        private Type[] GetGenericTypeArguments(JsonArray jArray)
         {
             List<Type> genericParameters = new List<Type>(this.genericArguments.Length);
 
             for (int i = jArray.Count - this.genericArguments.Length; i < jArray.Count; i++)
             {
-                Utils.TypeMetadata typeMetadata = jArray[i].ToObject<Utils.TypeMetadata>();
-                genericParameters.Add(Assembly.Load(typeMetadata.AssemblyName).GetType(typeMetadata.FullyQualifiedTypeName));
+                Utils.TypeMetadata? typeMetadata = jArray[i]?.Deserialize<Utils.TypeMetadata>();
+                if (typeMetadata != null)
+                {
+                    genericParameters.Add(Assembly.Load(typeMetadata.AssemblyName).GetType(typeMetadata.FullyQualifiedTypeName)!);
+                }
             }
 
             return genericParameters.ToArray();
         }
 
-        private object[] GetInputParameters(JArray jArray, int parameterCount, ParameterInfo[] methodParameters, Type[] genericArguments)
+        private object[] GetInputParameters(JsonArray jArray, int parameterCount, ParameterInfo[] methodParameters, Type[] genericArguments)
         {
             var inputParameters = new object[methodParameters.Length];
             for (var i = 0; i < methodParameters.Length; i++)
@@ -207,15 +210,15 @@ namespace DurableTask.Core
 
                 if (i < parameterCount)
                 {
-                    JToken jToken = jArray[i];
-                    if (jToken is JValue jValue)
+                    JsonNode? jNode = jArray[i];
+                    if (jNode is JsonValue jValue)
                     {
-                        inputParameters[i] = jValue.ToObject(parameterType);
+                        inputParameters[i] = jValue.Deserialize(parameterType)!;
                     }
-                    else
+                    else if (jNode != null)
                     {
-                        string serializedValue = jToken.ToString();
-                        inputParameters[i] = this.DataConverter.Deserialize(serializedValue, parameterType);
+                        string serializedValue = jNode.ToJsonString();
+                        inputParameters[i] = this.DataConverter.Deserialize(serializedValue, parameterType)!;
                     }
                 }
                 else
@@ -234,4 +237,3 @@ namespace DurableTask.Core
             return inputParameters;
         }
     }
-}

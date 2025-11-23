@@ -265,4 +265,3 @@ public class FailureDetails : IEquatable<FailureDetails>
         }
 
     }
-}

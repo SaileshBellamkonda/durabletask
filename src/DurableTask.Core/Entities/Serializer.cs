@@ -11,20 +11,19 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 #nullable enable
-namespace DurableTask.Core.Entities
+namespace DurableTask.Core.Entities;
+
+using System.Text.Json;
+
+internal static class Serializer
 {
-    using Newtonsoft.Json;
-
-    internal static class Serializer
+    /// <summary>
+    /// This serializer is used exclusively for internally defined data structures and cannot be customized by user.
+    /// This is intentional, to avoid problems caused by our unability to control the exact format.
+    /// For example, including typenames can cause compatibility problems if the type name is later changed.
+    /// </summary>
+    public static JsonSerializerOptions InternalSerializerOptions { get; } = new JsonSerializerOptions
     {
-        /// <summary>
-        /// This serializer is used exclusively for internally defined data structures and cannot be customized by user.
-        /// This is intentional, to avoid problems caused by our unability to control the exact format.
-        /// For example, including typenames can cause compatibility problems if the type name is later changed.
-        /// </summary>
-        public static JsonSerializer InternalSerializer = JsonSerializer.Create(InternalSerializerSettings);
-
-        public static JsonSerializerSettings InternalSerializerSettings 
-            = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.None };
-    }
+        WriteIndented = false
+    };
 }

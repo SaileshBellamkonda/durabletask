@@ -11,30 +11,30 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 #nullable enable
-namespace DurableTask.Core
+namespace DurableTask.Core;
+
+using System;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
+using DurableTask.Core.Command;
+using DurableTask.Core.Common;
+
+/// <summary>
+/// The result of an orchestration execution.
+/// </summary>
+public class OrchestratorExecutionResult
 {
-    using System;
-    using System.Collections.Generic;
-    using DurableTask.Core.Command;
-    using DurableTask.Core.Common;
-    using Newtonsoft.Json;
+    /// <summary>
+    /// The list of actions resulting from the orchestrator execution.
+    /// </summary>
+    [JsonPropertyName("actions")]
+    public IEnumerable<OrchestratorAction> Actions { get; set; } = Array.Empty<OrchestratorAction>();
 
     /// <summary>
-    /// The result of an orchestration execution.
+    /// The custom status, if any, of the orchestrator.
     /// </summary>
-    public class OrchestratorExecutionResult
-    {
-        /// <summary>
-        /// The list of actions resulting from the orchestrator execution.
-        /// </summary>
-        [JsonProperty("actions")]
-        public IEnumerable<OrchestratorAction> Actions { get; set; } = Array.Empty<OrchestratorAction>();
-
-        /// <summary>
-        /// The custom status, if any, of the orchestrator.
-        /// </summary>
-        [JsonProperty("customStatus")]
-        public string? CustomStatus { get; set; }
+    [JsonPropertyName("customStatus")]
+    public string? CustomStatus { get; set; }
 
         /// <summary>
         /// Creates an orchestrator failure result with a specified message and exception.
@@ -68,4 +68,3 @@ namespace DurableTask.Core
             };
         }
     }
-}
