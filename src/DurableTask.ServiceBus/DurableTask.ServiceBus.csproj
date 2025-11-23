@@ -2,7 +2,7 @@
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory),DurableTask.sln))\tools\DurableTask.props" />
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <PackageId>Microsoft.Azure.DurableTask.ServiceBus</PackageId>
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
@@ -24,23 +24,8 @@
     <Version>$(VersionPrefix)</Version>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
-    <PackageReference Include="ImpromptuInterface" />
-    <PackageReference Include="Microsoft.Azure.KeyVault.Core" />
-    <PackageReference Include="Microsoft.Data.Edm" />
-    <PackageReference Include="Microsoft.Data.OData" />
-    <PackageReference Include="Microsoft.Data.Services.Client" />
-    <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" />
-    <PackageReference Include="System.Spatial" />
-    <PackageReference Include="WindowsAzure.ServiceBus" />
-    <Reference Include="System.Transactions" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Azure.Messaging.ServiceBus" />
-  </ItemGroup>
-
   <ItemGroup>
+    <PackageReference Include="Azure.Messaging.ServiceBus" />
     <PackageReference Include="Azure.Data.Tables"  />
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="Microsoft.CSharp" />
