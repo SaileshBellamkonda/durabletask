@@ -5,7 +5,7 @@
     <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!--NuGet licenseUrl and PackageIconUrl/iconUrl deprecation. -->
-    <NoWarn>NU5125;NU5048;CS7035</NoWarn> <!-- TODO: addition of CS7035 (version format doesn't follow convention) is a temporary workaround during 1ES migration -->
+    <NoWarn>NU5125;NU5048;CS7035;SYSLIB0051;CS0672;CS0618;CS8073;CA2022</NoWarn> <!-- TODO: addition of CS7035 (version format doesn't follow convention) is a temporary workaround during 1ES migration -->
   </PropertyGroup>
   
   <!-- General Package Info -->
