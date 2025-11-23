@@ -33,6 +33,52 @@ There are several places where you can learn more about this framework. Note tha
 - You can watch a video with some of the original maintainers in [Building Workflows with the Durable Task Framework](https://learn.microsoft.com/shows/on-net/building-workflows-with-the-durable-task-framework).
 - In some cases, the [Azure Durable Functions documentation](https://learn.microsoft.com/azure/azure-functions/durable/) can actually be useful in learning things about the underlying framework, although not everything will apply.
 
+## Requirements
+
+### Minimum Requirements
+- **.NET 8 SDK** or **.NET 10 SDK** (or later)
+- **Visual Studio 2022** (17.8 or later) or **Visual Studio Code** with C# extension
+- **Azure Storage Emulator** or **Azurite** for local development and testing
+- **Azure Service Bus** namespace for Service Bus provider tests
+
+### Supported Frameworks
+This library targets:
+- **.NET 8.0**
+- **.NET 10.0**
+
+> **Note**: .NET Framework 4.x support was removed in version 3.x. If you need .NET Framework support, please use version 2.x of the packages.
+
+## Build Instructions
+
+### Prerequisites
+Ensure you have the .NET 8 or .NET 10 SDK installed:
+```bash
+dotnet --version  # Should show 8.x.x or 10.x.x
+```
+
+### Building the Solution
+```bash
+# Clone the repository
+git clone https://github.com/Azure/durabletask.git
+cd durabletask
+
+# Restore dependencies
+dotnet restore
+
+# Build the solution
+dotnet build --configuration Release
+
+# Run tests (requires Azure Storage Emulator/Azurite)
+dotnet test --configuration Release
+```
+
+### Known Build Limitations
+Currently, the following projects require additional Azure SDK migration work and may not build:
+- `DurableTask.AzureStorage` - Requires migration from deprecated WindowsAzure.Storage SDK
+- `DurableTask.ServiceBus` - Requires migration from deprecated WindowsAzure.ServiceBus SDK
+
+All other projects build successfully on .NET 8 and .NET 10.
+
 ## Development Notes
 
 To run unit tests, you must specify your Service Bus connection string for the tests to use. You can do this via the **ServiceBusConnectionString** app.config value in the test project, or by defining a **DurableTaskTestServiceBusConnectionString** environment variable. The benefit of the environment variable is that no temporary source changes are required.
