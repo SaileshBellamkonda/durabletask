@@ -11,143 +11,141 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core
+namespace DurableTask.Core;
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using DurableTask.Core.Common;
+
+/// <summary>
+/// TraceContext keep the correlation value.
+/// </summary>
+public abstract class TraceContextBase
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Reflection;
-    using DurableTask.Core.Common;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    private static readonly JsonSerializerOptions serializerOptions;
 
     /// <summary>
-    /// TraceContext keep the correlation value.
+    /// Default constructor 
     /// </summary>
-    public abstract class TraceContextBase
+    protected TraceContextBase()
     {
-        private static readonly JsonSerializer serializer;
+        OrchestrationTraceContexts = new Stack<TraceContextBase>();
+    }
 
-        /// <summary>
-        /// Default constructor 
-        /// </summary>
-        protected TraceContextBase()
+    static TraceContextBase()
+    {
+        serializerOptions = new JsonSerializerOptions
         {
-            OrchestrationTraceContexts = new Stack<TraceContextBase>();
+            WriteIndented = false,
+            DefaultIgnoreCondition = JsonIgnoreCondition.Never,
+            ReferenceHandler = ReferenceHandler.Preserve,
+        };
+    }
+
+    /// <summary>
+    /// Start time of this telemetry
+    /// </summary>
+    public DateTimeOffset StartTime { get; set; }
+
+    /// <summary>
+    /// Type of this telemetry.
+    /// Request Telemetry or Dependency Telemetry.
+    /// Use
+    /// <see cref="TelemetryType"/> 
+    /// </summary>
+    public TelemetryType TelemetryType { get; set; }
+
+    /// <summary>
+    /// OrchestrationState save the state of the 
+    /// </summary>
+    public Stack<TraceContextBase> OrchestrationTraceContexts { get; set; }
+
+    /// <summary>
+    /// Keep OperationName in case, don't have an Activity in this context
+    /// </summary>
+    public string OperationName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Current Activity only managed by this concrete class.
+    /// This property is not serialized.
+    /// </summary>
+    [JsonIgnore]
+    internal Activity? CurrentActivity { get; set; }
+
+    /// <summary>
+    /// Return if the orchestration is on replay
+    /// </summary>
+    /// <returns></returns>
+    [JsonIgnore]
+    public bool IsReplay { get; set; } = false;
+
+    /// <summary>
+    /// Duration of this context. Valid after call Stop() method.
+    /// </summary>
+    [JsonIgnore]
+    public abstract TimeSpan Duration { get; }
+
+    [JsonIgnore]
+    static JsonSerializerOptions CustomJsonSerializerOptions => serializerOptions;
+
+
+    /// <summary>
+    /// Serializable Json string of TraceContext
+    /// </summary>
+    [JsonIgnore]
+    public string SerializableTraceContext =>
+        JsonSerializer.Serialize(this, GetType(), serializerOptions);
+
+    /// <summary>
+    /// Telemetry.Id Used for sending telemetry. refer this URL
+    /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.applicationinsights.extensibility.implementation.operationtelemetry?view=azure-dotnet
+    /// </summary>
+    [JsonIgnore]
+    public abstract string TelemetryId { get; }
+
+    /// <summary>
+    /// Telemetry.Context.Operation.Id Used for sending telemetry refer this URL
+    /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.applicationinsights.extensibility.implementation.operationtelemetry?view=azure-dotnet
+    /// </summary>
+    [JsonIgnore]
+    public abstract string TelemetryContextOperationId { get; }
+
+    /// <summary>
+    /// Get RequestTraceContext of Current Orchestration
+    /// </summary>
+    /// <returns></returns>
+    public TraceContextBase GetCurrentOrchestrationRequestTraceContext()
+    {
+        foreach(TraceContextBase element in OrchestrationTraceContexts)
+        {
+            if (TelemetryType.Request == element.TelemetryType) return element;
         }
 
-        static TraceContextBase()
-        {
-            CustomJsonSerializerSettings = new JsonSerializerSettings()
-            {
-                TypeNameHandling = TypeNameHandling.Objects,
-                PreserveReferencesHandling = PreserveReferencesHandling.Objects,
-                ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
-            };
+        throw new InvalidOperationException("Can not find RequestTraceContext");
+    }
 
-            serializer = JsonSerializer.Create(CustomJsonSerializerSettings);   
-        }
+    /// <summary>
+    /// Telemetry.Context.Operation.ParentId Used for sending telemetry refer this URL
+    /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.applicationinsights.extensibility.implementation.operationtelemetry?view=azure-dotnet
+    /// </summary>
+    [JsonIgnore]
+    public abstract string TelemetryContextOperationParentId { get; }
 
-        /// <summary>
-        /// Start time of this telemetry
-        /// </summary>
-        public DateTimeOffset StartTime { get; set; }
+    /// <summary>
+    /// Set Parent TraceContext and Start the context
+    /// </summary>
+    /// <param name="parentTraceContext"> Parent Trace</param>
+    public abstract void SetParentAndStart(TraceContextBase parentTraceContext);
 
-        /// <summary>
-        /// Type of this telemetry.
-        /// Request Telemetry or Dependency Telemetry.
-        /// Use
-        /// <see cref="TelemetryType"/> 
-        /// </summary>
-        public TelemetryType TelemetryType { get; set; }
-
-        /// <summary>
-        /// OrchestrationState save the state of the 
-        /// </summary>
-        public Stack<TraceContextBase> OrchestrationTraceContexts { get; set; }
-
-        /// <summary>
-        /// Keep OperationName in case, don't have an Activity in this context
-        /// </summary>
-        public string OperationName { get; set; }
-
-        /// <summary>
-        /// Current Activity only managed by this concrete class.
-        /// This property is not serialized.
-        /// </summary>
-        [JsonIgnore]
-        internal Activity CurrentActivity { get; set; }
-
-        /// <summary>
-        /// Return if the orchestration is on replay
-        /// </summary>
-        /// <returns></returns>
-        [JsonIgnore]
-        public bool IsReplay { get; set; } = false;
-
-        /// <summary>
-        /// Duration of this context. Valid after call Stop() method.
-        /// </summary>
-        [JsonIgnore]
-        public abstract TimeSpan Duration { get; }
-
-        [JsonIgnore]
-        static JsonSerializerSettings CustomJsonSerializerSettings { get; }
-
-
-        /// <summary>
-        /// Serializable Json string of TraceContext
-        /// </summary>
-        [JsonIgnore]
-        public string SerializableTraceContext =>
-            Utils.SerializeToJson(serializer, this);
-
-        /// <summary>
-        /// Telemetry.Id Used for sending telemetry. refer this URL
-        /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.applicationinsights.extensibility.implementation.operationtelemetry?view=azure-dotnet
-        /// </summary>
-        [JsonIgnore]
-        public abstract string TelemetryId { get; }
-
-        /// <summary>
-        /// Telemetry.Context.Operation.Id Used for sending telemetry refer this URL
-        /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.applicationinsights.extensibility.implementation.operationtelemetry?view=azure-dotnet
-        /// </summary>
-        [JsonIgnore]
-        public abstract string TelemetryContextOperationId { get; }
-
-        /// <summary>
-        /// Get RequestTraceContext of Current Orchestration
-        /// </summary>
-        /// <returns></returns>
-        public TraceContextBase GetCurrentOrchestrationRequestTraceContext()
-        {
-            foreach(TraceContextBase element in OrchestrationTraceContexts)
-            {
-                if (TelemetryType.Request == element.TelemetryType) return element;
-            }
-
-            throw new InvalidOperationException("Can not find RequestTraceContext");
-        }
-
-        /// <summary>
-        /// Telemetry.Context.Operation.ParentId Used for sending telemetry refer this URL
-        /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.applicationinsights.extensibility.implementation.operationtelemetry?view=azure-dotnet
-        /// </summary>
-        [JsonIgnore]
-        public abstract string TelemetryContextOperationParentId { get; }
-
-        /// <summary>
-        /// Set Parent TraceContext and Start the context
-        /// </summary>
-        /// <param name="parentTraceContext"> Parent Trace</param>
-        public abstract void SetParentAndStart(TraceContextBase parentTraceContext);
-
-        /// <summary>
-        /// Start TraceContext as new
-        /// </summary>
-        public abstract void StartAsNew();
+    /// <summary>
+    /// Start TraceContext as new
+    /// </summary>
+    public abstract void StartAsNew();
 
         /// <summary>
         /// Stop TraceContext

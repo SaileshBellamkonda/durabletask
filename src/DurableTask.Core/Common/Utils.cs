@@ -11,138 +11,120 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 #nullable enable
-namespace DurableTask.Core.Common
+namespace DurableTask.Core.Common;
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.ExceptionServices;
+using System.Text;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using DurableTask.Core.Exceptions;
+using DurableTask.Core.History;
+using DurableTask.Core.Serializing;
+using DurableTask.Core.Tracing;
+
+/// <summary>
+/// Utility Methods
+/// </summary>
+public static class Utils
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.IO;
-    using System.IO.Compression;
-    using System.Linq;
-    using System.Reflection;
-    using System.Runtime.ExceptionServices;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using DurableTask.Core.Exceptions;
-    using DurableTask.Core.History;
-    using DurableTask.Core.Serializing;
-    using DurableTask.Core.Tracing;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    const int FullGzipHeaderLength = 10;
 
     /// <summary>
-    /// Utility Methods
+    /// Gets a safe maximum datetime value that accounts for timezone
     /// </summary>
-    public static class Utils
+    public static readonly DateTime DateTimeSafeMaxValue =
+        DateTime.MaxValue.Subtract(TimeSpan.FromDays(1)).ToUniversalTime();
+
+    static readonly byte[] GzipHeader = { 0x1f, 0x8b };
+
+    /// <summary>
+    /// Gets the version of the DurableTask.Core nuget package, which by convension is the same as the assembly file version.
+    /// </summary>
+    internal static readonly string PackageVersion = FileVersionInfo.GetVersionInfo(typeof(TaskOrchestration).Assembly.Location).FileVersion ?? string.Empty;
+
+    private static readonly JsonSerializerOptions ObjectJsonOptions = new JsonSerializerOptions
     {
-        const int FullGzipHeaderLength = 10;
+        WriteIndented = false,
+        TypeInfoResolver = new PackageUpgradeTypeInfoResolver()
+    };
 
-        /// <summary>
-        /// Gets a safe maximum datetime value that accounts for timezone
-        /// </summary>
-        public static readonly DateTime DateTimeSafeMaxValue =
-            DateTime.MaxValue.Subtract(TimeSpan.FromDays(1)).ToUniversalTime();
+    private static readonly JsonSerializerOptions DefaultOptions = new JsonSerializerOptions
+    {
+        WriteIndented = false
+    };
 
-        static readonly byte[] GzipHeader = { 0x1f, 0x8b };
+    /// <summary>
+    /// Serialize some object payload to a JSON-string representation.
+    /// This utility is resilient to end-user changes in the default settings.
+    /// </summary>
+    /// <param name="payload">The object to serialize.</param>
+    /// <returns>The JSON-string representation of the payload</returns>
+    public static string SerializeToJson(object? payload)
+    {
+        return SerializeToJson(DefaultOptions, payload);
+    }
 
-        /// <summary>
-        /// Gets the version of the DurableTask.Core nuget package, which by convension is the same as the assembly file version.
-        /// </summary>
-        internal static readonly string PackageVersion = FileVersionInfo.GetVersionInfo(typeof(TaskOrchestration).Assembly.Location).FileVersion;
-
-        private static readonly JsonSerializerSettings ObjectJsonSettings = new JsonSerializerSettings
+    /// <summary>
+    /// Serialize some object payload to a JSON-string representation.
+    /// This utility is resilient to end-user changes in the default settings.
+    /// </summary>
+    /// <param name="options">The serializer options to use.</param>
+    /// <param name="payload">The object to serialize.</param>
+    /// <returns>The JSON-string representation of the payload</returns>
+    public static string SerializeToJson(JsonSerializerOptions options, object? payload)
+    {
+        if (payload == null)
         {
-            TypeNameHandling = TypeNameHandling.All,
-
-#if NETSTANDARD2_0
-            SerializationBinder = new PackageUpgradeSerializationBinder()
-#else
-            Binder = new PackageUpgradeSerializationBinder()
-#endif
-        };
-        private static readonly JsonSerializer DefaultObjectJsonSerializer = JsonSerializer.Create(ObjectJsonSettings);
-
-        private static readonly JsonSerializer DefaultSerializer = JsonSerializer.Create();
-
-        /// <summary>
-        /// Serialize some object payload to a JSON-string representation.
-        /// This utility is resilient to end-user changes in the DefaultSettings of Newtonsoft.
-        /// </summary>
-        /// <param name="payload">The object to serialize.</param>
-        /// <returns>The JSON-string representation of the payload</returns>
-        public static string SerializeToJson(object payload)
-        {
-            return SerializeToJson(DefaultSerializer, payload);
+            return "null";
         }
+        return JsonSerializer.Serialize(payload, payload.GetType(), options);
+    }
 
-        /// <summary>
-        /// Serialize some object payload to a JSON-string representation.
-        /// This utility is resilient to end-user changes in the DefaultSettings of Newtonsoft.
-        /// </summary>
-        /// <param name="serializer">The serializer to use.</param>
-        /// <param name="payload">The object to serialize.</param>
-        /// <returns>The JSON-string representation of the payload</returns>
-        public static string SerializeToJson(JsonSerializer serializer, object payload)
-        {
-            StringBuilder stringBuilder = new StringBuilder();
-            using (var stringWriter = new StringWriter(stringBuilder))
-            {
-                serializer.Serialize(stringWriter, payload);
-            }
-            var jsonStr = stringBuilder.ToString();
-            return jsonStr;
-        }
+    /// <summary>
+    /// Deserialize a JSON-string into an object of type T
+    /// This utility is resilient to end-user changes in the default settings.
+    /// </summary>
+    /// <typeparam name="T">The type to deserialize the JSON string into.</typeparam>
+    /// <param name="options">The serializer options whose config will guide the deserialization.</param>
+    /// <param name="jsonString">The JSON-string to deserialize.</param>
+    /// <returns></returns>
+    public static T? DeserializeFromJson<T>(JsonSerializerOptions options, string jsonString)
+    {
+        return JsonSerializer.Deserialize<T>(jsonString, options);
+    }
 
-        /// <summary>
-        /// Deserialize a JSON-string into an object of type T
-        /// This utility is resilient to end-user changes in the DefaultSettings of Newtonsoft.
-        /// </summary>
-        /// <typeparam name="T">The type to deserialize the JSON string into.</typeparam>
-        /// <param name="serializer">The serializer whose config will guide the deserialization.</param>
-        /// <param name="jsonString">The JSON-string to deserialize.</param>
-        /// <returns></returns>
-        public static T? DeserializeFromJson<T>(JsonSerializer serializer, string jsonString)
-        {
-            T? obj;
-            using (var reader = new StringReader(jsonString))
-            using (var jsonReader = new JsonTextReader(reader))
-            {
-                obj = serializer.Deserialize<T>(jsonReader);
-            }
-            return obj;
-        }
+    /// <summary>
+    /// Deserialize a JSON-string into an object of type `type`
+    /// This utility is resilient to end-user changes in the default settings.
+    /// </summary>
+    /// <param name="jsonString">The JSON-string to deserialize.</param>
+    /// <param name="type">The expected de-serialization type.</param>
+    /// <returns></returns>
+    public static object? DeserializeFromJson(string jsonString, Type type)
+    {
+        return DeserializeFromJson(DefaultOptions, jsonString, type);
+    }
 
-        /// <summary>
-        /// Deserialize a JSON-string into an object of type `type`
-        /// This utility is resilient to end-user changes in the DefaultSettings of Newtonsoft.
-        /// </summary>
-        /// <param name="jsonString">The JSON-string to deserialize.</param>
-        /// <param name="type">The expected de-serialization type.</param>
-        /// <returns></returns>
-        public static object? DeserializeFromJson(string jsonString, Type type)
-        {
-            return DeserializeFromJson(DefaultSerializer, jsonString, type);
-        }
-
-        /// <summary>
-        /// Deserialize a JSON-string into an object of type `type`
-        /// This utility is resilient to end-user changes in the DefaultSettings of Newtonsoft.
-        /// </summary>
-        /// <param name="serializer">The serializer whose config will guide the deserialization.</param>
-        /// <param name="jsonString">The JSON-string to deserialize.</param>
-        /// <param name="type">The expected de-serialization type.</param>
-        /// <returns></returns>
-        public static object? DeserializeFromJson(JsonSerializer serializer, string jsonString, Type type)
-        {
-            object? obj;
-            using (var reader = new StringReader(jsonString))
-            using (var jsonReader = new JsonTextReader(reader))
-            {
-                obj = serializer.Deserialize(jsonReader, type);
-            }
-            return obj;
-        }
+    /// <summary>
+    /// Deserialize a JSON-string into an object of type `type`
+    /// This utility is resilient to end-user changes in the default settings.
+    /// </summary>
+    /// <param name="options">The serializer options whose config will guide the deserialization.</param>
+    /// <param name="jsonString">The JSON-string to deserialize.</param>
+    /// <param name="type">The expected de-serialization type.</param>
+    /// <returns></returns>
+    public static object? DeserializeFromJson(JsonSerializerOptions options, string jsonString, Type type)
+    {
+        return JsonSerializer.Deserialize(jsonString, type, options);
+    }
 
 
         /// <summary>
