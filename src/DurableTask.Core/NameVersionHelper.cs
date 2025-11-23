@@ -128,7 +128,7 @@ namespace DurableTask.Core
         /// <param name="getMethodUniqueId"></param>
         /// <param name="visited"></param>
         /// <returns></returns>
-        internal static IList<MethodInfo> GetAllInterfaceMethods(Type t, Func<MethodInfo, string> getMethodUniqueId, HashSet<string> visited = null)
+        internal static IList<MethodInfo> GetAllInterfaceMethods(Type t, Func<MethodInfo, string> getMethodUniqueId, HashSet<string>? visited = null)
         {
             if (visited == null)
             {

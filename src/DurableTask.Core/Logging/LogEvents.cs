@@ -747,7 +747,7 @@ namespace DurableTask.Core.Logging
 
         internal class FetchingInstanceState : StructuredLogEvent, IEventSourceEvent
         {
-            public FetchingInstanceState(string instanceId, string executionId = null)
+            public FetchingInstanceState(string instanceId, string? executionId = null)
             {
                 this.InstanceId = instanceId;
                 this.ExecutionId = executionId ?? string.Empty;

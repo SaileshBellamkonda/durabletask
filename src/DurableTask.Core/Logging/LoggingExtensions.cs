@@ -27,7 +27,7 @@ namespace DurableTask.Core.Logging
         /// <param name="logger">The logger to write to.</param>
         /// <param name="logEvent">The event to be logged.</param>
         /// <param name="exception">Optional exception parameter for logging.</param>
-        public static void LogDurableEvent(this ILogger logger, ILogEvent logEvent, Exception exception = null)
+        public static void LogDurableEvent(this ILogger logger, ILogEvent logEvent, Exception? exception = null)
         {
             if (logEvent == null)
             {

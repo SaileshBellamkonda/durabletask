@@ -42,7 +42,7 @@ namespace DurableTask.Core
             }
         }
 
-        public T GetObject(string name, string version)
+        public T? GetObject(string name, string? version)
         {
             string key = GetKey(name, version);
 
@@ -57,7 +57,7 @@ namespace DurableTask.Core
             }
         }
 
-        string GetKey(string name, string version)
+        string GetKey(string name, string? version)
         {
             return name + "_" + version;
         }

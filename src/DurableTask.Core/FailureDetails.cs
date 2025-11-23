@@ -217,7 +217,7 @@ public class FailureDetails : IEquatable<FailureDetails>
         /// <summary>
         /// Gets whether two <see cref="FailureDetails"/> objects are equivalent using value semantics.
         /// </summary>
-        public override bool Equals(object other) => Equals(other as FailureDetails);
+        public override bool Equals(object? other) => Equals(other as FailureDetails);
 
         /// <summary>
         /// Gets whether two <see cref="FailureDetails"/> objects are equivalent using value semantics.

@@ -50,9 +50,9 @@ namespace DurableTask.Core
         public TaskOrchestrationContext(
             OrchestrationInstance orchestrationInstance,
             TaskScheduler taskScheduler,
-            TaskOrchestrationEntityParameters entityParameters = null,
+            TaskOrchestrationEntityParameters? entityParameters = null,
             ErrorPropagationMode errorPropagationMode = ErrorPropagationMode.SerializeExceptions,
-            IExceptionPropertiesProvider exceptionPropertiesProvider = null)
+            IExceptionPropertiesProvider? exceptionPropertiesProvider = null)
         {
             Utils.UnusedParameter(taskScheduler);
 
@@ -699,7 +699,7 @@ namespace DurableTask.Core
             CompleteOrchestration(reason, details, OrchestrationStatus.Failed, failureDetails);
         }
 
-        public void CompleteOrchestration(string result, string details, OrchestrationStatus orchestrationStatus, FailureDetails failureDetails = null)
+        public void CompleteOrchestration(string result, string details, OrchestrationStatus orchestrationStatus, FailureDetails? failureDetails = null)
         {
             int id = this.idCounter++;
             OrchestrationCompleteOrchestratorAction completedOrchestratorAction;

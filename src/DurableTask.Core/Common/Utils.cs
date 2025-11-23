@@ -196,18 +196,6 @@ public static class Utils
             return input;
         }
 
-        internal static JArray ConvertToJArray(string input)
-        {
-            JArray jArray;
-            using (var stringReader = new StringReader(input))
-            using (var jsonTextReader = new JsonTextReader(stringReader) { DateParseHandling = DateParseHandling.None })
-            {
-                jArray = JArray.Load(jsonTextReader);
-            }
-
-            return jArray;
-        }
-
         /// <summary>
         /// Serializes and appends the supplied object to the supplied stream
         /// </summary>

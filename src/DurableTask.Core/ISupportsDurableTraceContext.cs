@@ -11,60 +11,59 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
+namespace DurableTask.Core;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using DurableTask.Core.Tracing;
 
-namespace DurableTask.Core
+/// <summary>
+/// Interface to store the Trace Context for events. Used for Distributed Tracing.
+/// </summary>
+public interface ISupportsDurableTraceContext
 {
     /// <summary>
-    /// Interface to store the Trace Context for events. Used for Distributed Tracing.
+    /// The trace context associated with an event.
     /// </summary>
-    public interface ISupportsDurableTraceContext
+    public DistributedTraceContext? ParentTraceContext { get; set; }
+}
+
+internal static class DurableTraceContextWrapperExtensions
+{
+    internal static bool TryGetParentTraceContext(this ISupportsDurableTraceContext wrapper, out ActivityContext parentTraceContext)
     {
-        /// <summary>
-        /// The trace context associated with an event.
-        /// </summary>
-        public DistributedTraceContext ParentTraceContext { get; set; }
+        if (wrapper.ParentTraceContext?.TraceParent == null)
+        {
+            parentTraceContext = default;
+            return false;
+        }
+
+        return ActivityContext.TryParse(
+            wrapper.ParentTraceContext.TraceParent,
+            wrapper.ParentTraceContext.TraceState,
+            out parentTraceContext);
     }
 
-    internal static class DurableTraceContextWrapperExtensions
+    internal static void SetParentTraceContext(this ISupportsDurableTraceContext wrapper, Activity? activity)
     {
-        internal static bool TryGetParentTraceContext(this ISupportsDurableTraceContext wrapper, out ActivityContext parentTraceContext)
+        if (activity != null)
         {
-            if (wrapper.ParentTraceContext?.TraceParent == null)
-            {
-                parentTraceContext = default;
-                return false;
-            }
-
-            return ActivityContext.TryParse(
-                wrapper.ParentTraceContext.TraceParent,
-                wrapper.ParentTraceContext.TraceState,
-                out parentTraceContext);
+            wrapper.ParentTraceContext = new DistributedTraceContext(
+                activity.Id,
+                activity.TraceStateString);
         }
+    }
 
-        internal static void SetParentTraceContext(this ISupportsDurableTraceContext wrapper, Activity activity)
+    internal static void SetParentTraceContext(this ISupportsDurableTraceContext wrapper, ActivityContext activityContext)
+    {
+        if (activityContext != default)
         {
-            if (activity != null)
-            {
-                wrapper.ParentTraceContext = new DistributedTraceContext(
-                    activity.Id,
-                    activity.TraceStateString);
-            }
-        }
-
-        internal static void SetParentTraceContext(this ISupportsDurableTraceContext wrapper, ActivityContext activityContext)
-        {
-            if (activityContext != null)
-            {
-                // TODO: update trace flags casting to handle 2 digits
-                wrapper.ParentTraceContext = new DistributedTraceContext(
-                    $"00-{activityContext.TraceId}-{activityContext.SpanId}-0{activityContext.TraceFlags:d}",
-                    activityContext.TraceState);
-            }
+            // TODO: update trace flags casting to handle 2 digits
+            wrapper.ParentTraceContext = new DistributedTraceContext(
+                $"00-{activityContext.TraceId}-{activityContext.SpanId}-0{activityContext.TraceFlags:d}",
+                activityContext.TraceState);
         }
     }
 }

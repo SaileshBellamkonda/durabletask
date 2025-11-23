@@ -78,7 +78,7 @@ namespace DurableTask.Core
         /// </summary>
         /// <param name="orchestrationService">Reference the orchestration service implementation</param>
         /// <param name="loggerFactory">The <see cref="ILoggerFactory"/> to use for logging</param>
-        public TaskHubWorker(IOrchestrationService orchestrationService, ILoggerFactory loggerFactory = null)
+        public TaskHubWorker(IOrchestrationService orchestrationService, ILoggerFactory? loggerFactory = null)
             : this(
                   orchestrationService,
                   new NameVersionObjectManager<TaskOrchestration>(),
@@ -94,7 +94,7 @@ namespace DurableTask.Core
         /// <param name="orchestrationService">Reference the orchestration service implementation</param>
         /// <param name="versioningSettings">The <see cref="VersioningSettings"/> that define how orchestration versions are handled</param>
         /// <param name="loggerFactory">The <see cref="ILoggerFactory"/> to use for logging</param>
-        public TaskHubWorker(IOrchestrationService orchestrationService, VersioningSettings versioningSettings, ILoggerFactory loggerFactory = null)
+        public TaskHubWorker(IOrchestrationService orchestrationService, VersioningSettings versioningSettings, ILoggerFactory? loggerFactory = null)
             : this(
                   orchestrationService,
                   new NameVersionObjectManager<TaskOrchestration>(),
@@ -136,7 +136,7 @@ namespace DurableTask.Core
             IOrchestrationService orchestrationService,
             INameVersionObjectManager<TaskOrchestration> orchestrationObjectManager,
             INameVersionObjectManager<TaskActivity> activityObjectManager,
-            ILoggerFactory loggerFactory = null)
+            ILoggerFactory? loggerFactory = null)
              : this(
                 orchestrationService,
                 orchestrationObjectManager,
@@ -159,7 +159,7 @@ namespace DurableTask.Core
             INameVersionObjectManager<TaskOrchestration> orchestrationObjectManager,
             INameVersionObjectManager<TaskActivity> activityObjectManager,
             VersioningSettings versioningSettings,
-            ILoggerFactory loggerFactory = null)
+            ILoggerFactory? loggerFactory = null)
              : this(
                 orchestrationService,
                 orchestrationObjectManager,
@@ -183,7 +183,7 @@ namespace DurableTask.Core
             INameVersionObjectManager<TaskOrchestration> orchestrationObjectManager,
             INameVersionObjectManager<TaskActivity> activityObjectManager,
             INameVersionObjectManager<TaskEntity> entityObjectManager,
-            ILoggerFactory loggerFactory = null)
+            ILoggerFactory? loggerFactory = null)
             : this(
                   orchestrationService,
                   orchestrationObjectManager,
@@ -209,7 +209,7 @@ namespace DurableTask.Core
             INameVersionObjectManager<TaskActivity> activityObjectManager,
             INameVersionObjectManager<TaskEntity> entityObjectManager,
             VersioningSettings versioningSettings,
-            ILoggerFactory loggerFactory = null)
+            ILoggerFactory? loggerFactory = null)
         {
             this.orchestrationManager = orchestrationObjectManager ?? throw new ArgumentException("orchestrationObjectManager");
             this.activityManager = activityObjectManager ?? throw new ArgumentException("activityObjectManager");

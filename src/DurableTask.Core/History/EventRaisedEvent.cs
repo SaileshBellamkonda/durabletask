@@ -55,6 +55,6 @@ namespace DurableTask.Core.History
         /// The W3C trace context associated with this event.
         /// </summary>
         [DataMember]
-        public DistributedTraceContext ParentTraceContext { get; set; }
+        public DistributedTraceContext? ParentTraceContext { get; set; }
     }
 }
