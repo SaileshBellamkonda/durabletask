@@ -17,7 +17,8 @@ namespace DurableTask.Core.Serializing
     using System.Globalization;
     using System.IO;
     using System.Text;
-    using Newtonsoft.Json;
+    using System.Text.Json;
+    using System.Text.Json.Serialization.Metadata;
 
     /// <summary>
     /// Class for serializing and deserializing data to and from json
@@ -29,31 +30,47 @@ namespace DurableTask.Core.Serializing
         /// </summary>
         public static readonly JsonDataConverter Default = new JsonDataConverter();
 
-        readonly JsonSerializer serializer;
+        readonly JsonSerializerOptions options;
 
         /// <summary>
         /// Creates a new instance of the JsonDataConverter with default settings
         /// </summary>
         public JsonDataConverter()
-            : this(new JsonSerializerSettings
-            {
-                TypeNameHandling = TypeNameHandling.Objects,
-                DateParseHandling = DateParseHandling.None,
-#if NETSTANDARD2_0
-                SerializationBinder = new PackageUpgradeSerializationBinder()
-#else
-                Binder = new PackageUpgradeSerializationBinder()
-#endif
-            })
+            : this(CreateDefaultOptions())
         { }
 
         /// <summary>
-        /// Creates a new instance of the JsonDataConverter with supplied settings
+        /// Creates default JsonSerializerOptions with polymorphic serialization and type resolution
         /// </summary>
-        /// <param name="settings">Settings for the json serializer</param>
-        public JsonDataConverter(JsonSerializerSettings settings)
+        private static JsonSerializerOptions CreateDefaultOptions()
         {
-            this.serializer = JsonSerializer.Create(settings);
+            var options = new JsonSerializerOptions
+            {
+                // Enable polymorphic serialization with $type discriminator
+                TypeInfoResolver = new PolymorphicTypeResolver(),
+                // Write indented is false by default for performance
+                WriteIndented = false,
+                // Default handling for null values
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never,
+                // Preserve references to handle circular references
+                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve,
+                // Enum as strings for readability
+                Converters =
+                {
+                    new System.Text.Json.Serialization.JsonStringEnumConverter()
+                }
+            };
+            
+            return options;
+        }
+
+        /// <summary>
+        /// Creates a new instance of the JsonDataConverter with supplied options
+        /// </summary>
+        /// <param name="options">Options for the json serializer</param>
+        public JsonDataConverter(JsonSerializerOptions options)
+        {
+            this.options = options;
         }
 
         /// <summary>
@@ -80,15 +97,11 @@ namespace DurableTask.Core.Serializing
                 return null;
             }
 
-            var sb = new StringBuilder(0x100);
-            using (var textWriter = new StringWriter(sb, CultureInfo.InvariantCulture))
-            using (var writer = new JsonTextWriter(textWriter))
-            {
-                writer.Formatting = (formatted ? Formatting.Indented : Formatting.None);
-                this.serializer.Serialize(writer, value);
-            
-                return textWriter.ToString();
-            }
+            var optionsToUse = formatted 
+                ? new JsonSerializerOptions(this.options) { WriteIndented = true }
+                : this.options;
+
+            return System.Text.Json.JsonSerializer.Serialize(value, value.GetType(), optionsToUse);
         }
 
         /// <summary>
@@ -104,11 +117,32 @@ namespace DurableTask.Core.Serializing
                 return null;
             }
 
-            using (var reader = new StringReader(data))
-            using (var jsonTextReader = new JsonTextReader(reader))
+            return System.Text.Json.JsonSerializer.Deserialize(data, objectType, this.options);
+        }
+    }
+    
+    /// <summary>
+    /// Custom type resolver for polymorphic serialization that adds $type property
+    /// compatible with Newtonsoft.Json TypeNameHandling.Objects
+    /// </summary>
+    internal class PolymorphicTypeResolver : DefaultJsonTypeInfoResolver
+    {
+        public override JsonTypeInfo GetTypeInfo(Type type, JsonSerializerOptions options)
+        {
+            JsonTypeInfo jsonTypeInfo = base.GetTypeInfo(type, options);
+
+            // Add type discriminator handling for compatibility with Newtonsoft.Json format
+            if (jsonTypeInfo.Kind == JsonTypeInfoKind.Object)
             {
-                return this.serializer.Deserialize(jsonTextReader, objectType);
+                jsonTypeInfo.PolymorphismOptions = new JsonPolymorphismOptions
+                {
+                    TypeDiscriminatorPropertyName = "$type",
+                    IgnoreUnrecognizedTypeDiscriminators = true,
+                    UnknownDerivedTypeHandling = System.Text.Json.Serialization.JsonUnknownDerivedTypeHandling.FallBackToNearestAncestor,
+                };
             }
+
+            return jsonTypeInfo;
         }
     }
 }

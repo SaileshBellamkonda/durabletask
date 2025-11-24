@@ -16,6 +16,7 @@ namespace DurableTask.AzureServiceFabric
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using DurableTask.AzureServiceFabric.Stores;
@@ -27,14 +28,13 @@ namespace DurableTask.AzureServiceFabric
     using DurableTask.Core.Serializing;
     using DurableTask.Core.Tracking;
     using Microsoft.ServiceFabric.Data;
-    using Newtonsoft.Json;
 
     class FabricOrchestrationServiceClient : IOrchestrationServiceClient, IFabricProviderClient
     {
         readonly IReliableStateManager stateManager;
         readonly IFabricOrchestrationServiceInstanceStore instanceStore;
         readonly SessionProvider orchestrationProvider;
-        readonly JsonDataConverter formattingConverter = new JsonDataConverter(new JsonSerializerSettings() { Formatting = Formatting.Indented });
+        readonly JsonDataConverter formattingConverter = new JsonDataConverter(new JsonSerializerOptions { WriteIndented = true });
 
         public FabricOrchestrationServiceClient(IReliableStateManager stateManager, SessionProvider orchestrationProvider, IFabricOrchestrationServiceInstanceStore instanceStore)
         {
@@ -207,7 +207,7 @@ namespace DurableTask.AzureServiceFabric
 
             // Other implementations returns full history for the execution.
             // This implementation returns just the final history, i.e., state.
-            var result = JsonConvert.SerializeObject(this.instanceStore.GetOrchestrationStateAsync(instanceId, executionId));
+            var result = JsonSerializer.Serialize(this.instanceStore.GetOrchestrationStateAsync(instanceId, executionId));
             return Task.FromResult(result);
         }
 
