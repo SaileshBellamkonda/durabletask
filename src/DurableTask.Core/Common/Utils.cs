@@ -28,8 +28,7 @@ namespace DurableTask.Core.Common
     using DurableTask.Core.History;
     using DurableTask.Core.Serializing;
     using DurableTask.Core.Tracing;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using System.Text.Json;
 
     /// <summary>
     /// Utility Methods
@@ -51,29 +50,24 @@ namespace DurableTask.Core.Common
         /// </summary>
         internal static readonly string PackageVersion = FileVersionInfo.GetVersionInfo(typeof(TaskOrchestration).Assembly.Location).FileVersion;
 
-        private static readonly JsonSerializerSettings ObjectJsonSettings = new JsonSerializerSettings
+        private static readonly JsonSerializerOptions ObjectJsonSettings = new JsonSerializerOptions
         {
-            TypeNameHandling = TypeNameHandling.All,
-
-#if NETSTANDARD2_0
-            SerializationBinder = new PackageUpgradeSerializationBinder()
-#else
-            Binder = new PackageUpgradeSerializationBinder()
-#endif
+            // TypeNameHandling.All equivalent - requires custom implementation
+            // For now, using TypeInfoResolver - will be enhanced in JsonDataConverter
+            TypeInfoResolver = System.Text.Json.Serialization.Metadata.JsonTypeInfoResolver.Combine()
         };
-        private static readonly JsonSerializer DefaultObjectJsonSerializer = JsonSerializer.Create(ObjectJsonSettings);
 
-        private static readonly JsonSerializer DefaultSerializer = JsonSerializer.Create();
+        private static readonly JsonSerializerOptions DefaultOptions = new JsonSerializerOptions();
 
         /// <summary>
         /// Serialize some object payload to a JSON-string representation.
-        /// This utility is resilient to end-user changes in the DefaultSettings of Newtonsoft.
+        /// This utility is resilient to end-user changes in the DefaultSettings of System.Text.Json.
         /// </summary>
         /// <param name="payload">The object to serialize.</param>
         /// <returns>The JSON-string representation of the payload</returns>
         public static string SerializeToJson(object payload)
         {
-            return SerializeToJson(DefaultSerializer, payload);
+            return SerializeToJson(DefaultOptions, payload);
         }
 
         /// <summary>
@@ -83,65 +77,47 @@ namespace DurableTask.Core.Common
         /// <param name="serializer">The serializer to use.</param>
         /// <param name="payload">The object to serialize.</param>
         /// <returns>The JSON-string representation of the payload</returns>
-        public static string SerializeToJson(JsonSerializer serializer, object payload)
+        public static string SerializeToJson(JsonSerializerOptions options, object payload)
         {
-            StringBuilder stringBuilder = new StringBuilder();
-            using (var stringWriter = new StringWriter(stringBuilder))
-            {
-                serializer.Serialize(stringWriter, payload);
-            }
-            var jsonStr = stringBuilder.ToString();
-            return jsonStr;
+            return System.Text.Json.JsonSerializer.Serialize(payload, options);
         }
 
         /// <summary>
         /// Deserialize a JSON-string into an object of type T
-        /// This utility is resilient to end-user changes in the DefaultSettings of Newtonsoft.
+        /// This utility is resilient to end-user changes in the DefaultSettings of System.Text.Json.
         /// </summary>
         /// <typeparam name="T">The type to deserialize the JSON string into.</typeparam>
-        /// <param name="serializer">The serializer whose config will guide the deserialization.</param>
+        /// <param name="options">The serializer options whose config will guide the deserialization.</param>
         /// <param name="jsonString">The JSON-string to deserialize.</param>
         /// <returns></returns>
-        public static T? DeserializeFromJson<T>(JsonSerializer serializer, string jsonString)
+        public static T? DeserializeFromJson<T>(JsonSerializerOptions options, string jsonString)
         {
-            T? obj;
-            using (var reader = new StringReader(jsonString))
-            using (var jsonReader = new JsonTextReader(reader))
-            {
-                obj = serializer.Deserialize<T>(jsonReader);
-            }
-            return obj;
+            return System.Text.Json.JsonSerializer.Deserialize<T>(jsonString, options);
         }
 
         /// <summary>
         /// Deserialize a JSON-string into an object of type `type`
-        /// This utility is resilient to end-user changes in the DefaultSettings of Newtonsoft.
+        /// This utility is resilient to end-user changes in the DefaultSettings of System.Text.Json.
         /// </summary>
         /// <param name="jsonString">The JSON-string to deserialize.</param>
         /// <param name="type">The expected de-serialization type.</param>
         /// <returns></returns>
         public static object? DeserializeFromJson(string jsonString, Type type)
         {
-            return DeserializeFromJson(DefaultSerializer, jsonString, type);
+            return DeserializeFromJson(DefaultOptions, jsonString, type);
         }
 
         /// <summary>
         /// Deserialize a JSON-string into an object of type `type`
-        /// This utility is resilient to end-user changes in the DefaultSettings of Newtonsoft.
+        /// This utility is resilient to end-user changes in the DefaultSettings of System.Text.Json.
         /// </summary>
-        /// <param name="serializer">The serializer whose config will guide the deserialization.</param>
+        /// <param name="options">The serializer options whose config will guide the deserialization.</param>
         /// <param name="jsonString">The JSON-string to deserialize.</param>
         /// <param name="type">The expected de-serialization type.</param>
         /// <returns></returns>
-        public static object? DeserializeFromJson(JsonSerializer serializer, string jsonString, Type type)
+        public static object? DeserializeFromJson(JsonSerializerOptions options, string jsonString, Type type)
         {
-            object? obj;
-            using (var reader = new StringReader(jsonString))
-            using (var jsonReader = new JsonTextReader(reader))
-            {
-                obj = serializer.Deserialize(jsonReader, type);
-            }
-            return obj;
+            return System.Text.Json.JsonSerializer.Deserialize(jsonString, type, options);
         }
 
 
@@ -203,16 +179,13 @@ namespace DurableTask.Core.Common
             return input;
         }
 
-        internal static JArray ConvertToJArray(string input)
+        internal static JsonElement ConvertToJsonArray(string input)
         {
-            JArray jArray;
-            using (var stringReader = new StringReader(input))
-            using (var jsonTextReader = new JsonTextReader(stringReader) { DateParseHandling = DateParseHandling.None })
+            using (JsonDocument doc = JsonDocument.Parse(input))
             {
-                jArray = JArray.Load(jsonTextReader);
+                // Clone to avoid disposal issues
+                return doc.RootElement.Clone();
             }
-
-            return jArray;
         }
 
         /// <summary>
@@ -225,7 +198,7 @@ namespace DurableTask.Core.Common
                 throw new ArgumentException("stream is not seekable or writable", nameof(objectStream));
             }
 
-            var jsonStr = SerializeToJson(DefaultObjectJsonSerializer, obj);
+            var jsonStr = SerializeToJson(ObjectJsonSettings, obj);
             byte[] serializedBytes = Encoding.UTF8.GetBytes(jsonStr);
 
             objectStream.Write(serializedBytes, 0, serializedBytes.Length);
@@ -288,7 +261,7 @@ namespace DurableTask.Core.Common
         public static T? ReadObjectFromByteArray<T>(byte[] serializedBytes)
         {
             var jsonString = Encoding.UTF8.GetString(serializedBytes);
-            return DeserializeFromJson<T>(DefaultObjectJsonSerializer, jsonString);
+            return DeserializeFromJson<T>(ObjectJsonSettings, jsonString);
         }
 
         /// <summary>

@@ -21,7 +21,7 @@ namespace DurableTask.Core
     using DurableTask.Core.Common;
     using DurableTask.Core.Exceptions;
     using DurableTask.Core.Serializing;
-    using Newtonsoft.Json.Linq;
+    using System.Text.Json;
 
     /// <summary>
     /// Reflection based task activity for interface based task activities
@@ -81,9 +81,9 @@ namespace DurableTask.Core
         /// <returns>Serialized output from the execution</returns>
         public override async Task<string> RunAsync(TaskContext context, string input)
         {
-            var jArray = Utils.ConvertToJArray(input);
+            var jsonArray = Utils.ConvertToJsonArray(input);
 
-            int parameterCount = jArray.Count - this.genericArguments.Length;
+            int parameterCount = jsonArray.GetArrayLength() - this.genericArguments.Length;
             ParameterInfo[] methodParameters = MethodInfo.GetParameters();
             if (methodParameters.Length < parameterCount)
             {
@@ -92,8 +92,8 @@ namespace DurableTask.Core
                     .WithFailureSource(MethodInfoString());
             }
 
-            Type[] genericTypeArguments = this.GetGenericTypeArguments(jArray);
-            object[] inputParameters = this.GetInputParameters(jArray, parameterCount, methodParameters, genericTypeArguments);
+            Type[] genericTypeArguments = this.GetGenericTypeArguments(jsonArray);
+            object[] inputParameters = this.GetInputParameters(jsonArray, parameterCount, methodParameters, genericTypeArguments);
 
             string serializedReturn = string.Empty;
             Exception exception = null;
@@ -182,20 +182,21 @@ namespace DurableTask.Core
             return $"{MethodInfo.ReflectedType?.FullName}.{MethodInfo.Name}";
         }
 
-        private Type[] GetGenericTypeArguments(JArray jArray)
+        private Type[] GetGenericTypeArguments(JsonElement jsonArray)
         {
             List<Type> genericParameters = new List<Type>(this.genericArguments.Length);
 
-            for (int i = jArray.Count - this.genericArguments.Length; i < jArray.Count; i++)
+            int arrayLength = jsonArray.GetArrayLength();
+            for (int i = arrayLength - this.genericArguments.Length; i < arrayLength; i++)
             {
-                Utils.TypeMetadata typeMetadata = jArray[i].ToObject<Utils.TypeMetadata>();
+                Utils.TypeMetadata typeMetadata = jsonArray[i].Deserialize<Utils.TypeMetadata>()!;
                 genericParameters.Add(Assembly.Load(typeMetadata.AssemblyName).GetType(typeMetadata.FullyQualifiedTypeName));
             }
 
             return genericParameters.ToArray();
         }
 
-        private object[] GetInputParameters(JArray jArray, int parameterCount, ParameterInfo[] methodParameters, Type[] genericArguments)
+        private object[] GetInputParameters(JsonElement jsonArray, int parameterCount, ParameterInfo[] methodParameters, Type[] genericArguments)
         {
             var inputParameters = new object[methodParameters.Length];
             for (var i = 0; i < methodParameters.Length; i++)
@@ -207,14 +208,18 @@ namespace DurableTask.Core
 
                 if (i < parameterCount)
                 {
-                    JToken jToken = jArray[i];
-                    if (jToken is JValue jValue)
+                    JsonElement jsonElement = jsonArray[i];
+                    if (jsonElement.ValueKind == JsonValueKind.String || 
+                        jsonElement.ValueKind == JsonValueKind.Number ||
+                        jsonElement.ValueKind == JsonValueKind.True ||
+                        jsonElement.ValueKind == JsonValueKind.False ||
+                        jsonElement.ValueKind == JsonValueKind.Null)
                     {
-                        inputParameters[i] = jValue.ToObject(parameterType);
+                        inputParameters[i] = jsonElement.Deserialize(parameterType);
                     }
                     else
                     {
-                        string serializedValue = jToken.ToString();
+                        string serializedValue = jsonElement.GetRawText();
                         inputParameters[i] = this.DataConverter.Deserialize(serializedValue, parameterType);
                     }
                 }

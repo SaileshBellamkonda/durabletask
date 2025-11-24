@@ -16,7 +16,7 @@ namespace DurableTask.Core
     using DurableTask.Core.Common;
     using DurableTask.Core.Exceptions;
     using DurableTask.Core.Serializing;
-    using Newtonsoft.Json.Linq;
+    using System.Text.Json;
     using System;
     using System.Threading.Tasks;
 
@@ -104,9 +104,9 @@ namespace DurableTask.Core
         {
             TInput parameter = default(TInput);
 
-            var jArray = Utils.ConvertToJArray(input);
+            var jsonArray = Utils.ConvertToJsonArray(input);
 
-            int parameterCount = jArray.Count;
+            int parameterCount = jsonArray.GetArrayLength();
             if (parameterCount > 1)
             {
                 throw new TaskFailureException(
@@ -115,14 +115,18 @@ namespace DurableTask.Core
             
             if (parameterCount == 1)
             {
-                JToken jToken = jArray[0];
-                if (jToken is JValue jValue)
+                JsonElement jsonElement = jsonArray[0];
+                if (jsonElement.ValueKind == JsonValueKind.String || 
+                    jsonElement.ValueKind == JsonValueKind.Number ||
+                    jsonElement.ValueKind == JsonValueKind.True ||
+                    jsonElement.ValueKind == JsonValueKind.False ||
+                    jsonElement.ValueKind == JsonValueKind.Null)
                 {
-                    parameter = jValue.ToObject<TInput>();
+                    parameter = jsonElement.Deserialize<TInput>();
                 }
                 else
                 {
-                    string serializedValue = jToken.ToString();
+                    string serializedValue = jsonElement.GetRawText();
                     parameter = DataConverter.Deserialize<TInput>(serializedValue);
                 }
             }
