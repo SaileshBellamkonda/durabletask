@@ -17,14 +17,16 @@ namespace DurableTask.Core.Serializing
     using System.Collections.Generic;
     using System.Linq;
     using System.Runtime.InteropServices;
-    using Newtonsoft.Json.Serialization;
 
     /// <summary>
     /// SerializationBinder to be used for deserializing DurableTask types that are pre v-2.0, this allows upgrade compatibility.
     /// This is not sufficient to deserialize objects from 1.0 which had the Tags Property set.
+    /// NOTE: This class is retained for backward compatibility but is no longer used with System.Text.Json.
+    /// Type resolution is now handled through standard reflection in PolymorphicTypeResolver.
     /// </summary>
     [ComVisible(false)]
-    public class PackageUpgradeSerializationBinder : DefaultSerializationBinder
+    [Obsolete("This class is no longer used with System.Text.Json. Type resolution is handled by PolymorphicTypeResolver.")]
+    public class PackageUpgradeSerializationBinder
     {
         static readonly Lazy<IDictionary<string, Type>> KnownTypes = new Lazy<IDictionary<string, Type>>(() =>
         {
@@ -37,8 +39,10 @@ namespace DurableTask.Core.Serializing
         static readonly string CurrentAssemblyName = typeof(PackageUpgradeSerializationBinder).Assembly.GetName().Name;
         static readonly ISet<string> UpgradeableAssemblyNames = new HashSet<string> { "DurableTask", "DurableTaskFx" };
 
-        /// <inheritdoc />
-        public override Type BindToType(string assemblyName, string typeName)
+        /// <summary>
+        /// Resolves a type from assembly name and type name for upgrade compatibility.
+        /// </summary>
+        public static Type BindToType(string assemblyName, string typeName)
         {
             Type resolvedType = null;
 
@@ -56,7 +60,8 @@ namespace DurableTask.Core.Serializing
 
             if (resolvedType == null)
             {
-                resolvedType = base.BindToType(assemblyName, typeName);
+                // Fallback to default type resolution
+                resolvedType = Type.GetType($"{typeName}, {assemblyName}");
             }
 
             return resolvedType;

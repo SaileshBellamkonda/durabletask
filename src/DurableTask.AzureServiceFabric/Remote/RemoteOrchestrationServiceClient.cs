@@ -29,8 +29,7 @@ namespace DurableTask.AzureServiceFabric.Remote
     using DurableTask.AzureServiceFabric.Exceptions;
     using DurableTask.AzureServiceFabric.Models;
 
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using System.Text.Json;
     using System.Web.Http.Results;
 
     /// <summary>
@@ -156,7 +155,7 @@ namespace DurableTask.AzureServiceFabric.Remote
 
             var fragment = $"{this.GetOrchestrationFragment(instanceId)}?allExecutions={allExecutions}";
             var stateString = await this.GetStringResponseAsync(instanceId, fragment, CancellationToken.None);
-            var states = JsonConvert.DeserializeObject<IList<OrchestrationState>>(stateString);
+            var states = JsonSerializer.Deserialize<IList<OrchestrationState>>(stateString);
             return states;
         }
 
@@ -177,7 +176,7 @@ namespace DurableTask.AzureServiceFabric.Remote
 
             var fragment = $"{this.GetOrchestrationFragment(instanceId)}?executionId={executionId}";
             var stateString = await this.GetStringResponseAsync(instanceId, fragment, CancellationToken.None);
-            var state = JsonConvert.DeserializeObject<OrchestrationState>(stateString);
+            var state = JsonSerializer.Deserialize<OrchestrationState>(stateString);
             return state;
         }
 
@@ -305,7 +304,7 @@ namespace DurableTask.AzureServiceFabric.Remote
         {
             var mediaFormatter = new JsonMediaTypeFormatter()
             {
-                SerializerSettings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All }
+                SerializerSettings = null // Using default System.Text.Json serialization via HttpClient
             };
 
             using (var result = await this.ExecuteRequestWithRetriesAsync(
@@ -338,8 +337,8 @@ namespace DurableTask.AzureServiceFabric.Remote
         private string GetDefaultEndPoint(string endpoint)
         {
             // sample endpoint - {"Endpoints":{"":"http:\/\/10.91.42.35:30001"}}
-            var jObject = JObject.Parse(endpoint);
-            var defaultEndPoint = jObject["Endpoints"][Constants.TaskHubProxyServiceName].ToString();
+            var jsonDoc = System.Text.Json.JsonDocument.Parse(endpoint);
+            var defaultEndPoint = jsonDoc.RootElement.GetProperty("Endpoints").GetProperty(Constants.TaskHubProxyServiceName).GetString();
             return defaultEndPoint;
         }
 

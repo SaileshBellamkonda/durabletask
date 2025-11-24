@@ -28,7 +28,6 @@ namespace DurableTask.AzureServiceFabric
     using DurableTask.AzureServiceFabric.TaskHelpers;
     using DurableTask.AzureServiceFabric.Tracing;
     using Microsoft.ServiceFabric.Data;
-    using Newtonsoft.Json;
 
     class FabricOrchestrationService : IOrchestrationService
     {
@@ -369,7 +368,7 @@ namespace DurableTask.AzureServiceFabric
         {
             await CompleteOrchestrationAsync(workItem);
 
-            string message = $"{nameof(DropOrchestrationAsync)}: Dropped. Orchestration history: {JsonConvert.SerializeObject(workItem.OrchestrationRuntimeState.Events)}";
+            string message = $"{nameof(DropOrchestrationAsync)}: Dropped. Orchestration history: {System.Text.Json.JsonSerializer.Serialize(workItem.OrchestrationRuntimeState.Events)}";
             ServiceFabricProviderEventSource.Tracing.LogOrchestrationInformation(workItem.InstanceId,
                 workItem.OrchestrationRuntimeState.OrchestrationInstance?.ExecutionId,
                 message);
