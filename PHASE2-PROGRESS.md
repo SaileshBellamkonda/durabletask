@@ -2,8 +2,9 @@
 
 ## Summary
 
-**Status:** IN PROGRESS - 19% Complete (7/37 files)
-**Core Library:** 37% Complete (7/19 files)
+**Status:** IN PROGRESS - 24% Complete (9/37 files)
+**Core Library:** 47% Complete (9/19 files)
+**Build Status:** ✅ DurableTask.Core builds successfully with 0 errors!
 
 ## Completed Work
 
@@ -18,9 +19,9 @@
   - Enums as strings
   - Case-insensitive deserialization
 
-### Step 3-4: Simple File Conversions ✅
+### Step 3-4: File Conversions ✅ (9/19 Core, 47%)
 
-**Files Converted (7):**
+**Files Converted (9):**
 
 1. **FailureDetails.cs**
    - Changed: using Newtonsoft.Json → System.Text.Json.Serialization
@@ -48,39 +49,38 @@
    - Changed: JsonConvert.DeserializeObject → JsonSerializer.Deserialize
    - Updated: Uses Serializer.InternalSerializerOptions.Value
 
+8. **TaskEntityDispatcher.cs** (COMPLEX - 6 operations)
+   - Changed: 3x JsonConvert.SerializeObject → JsonSerializer.Serialize
+   - Changed: 3x JsonConvert.PopulateObject → JsonSerializer.Deserialize + assign
+   - Updated: All uses Serializer.InternalSerializerOptions.Value
+
+9. **Entities/OrchestrationEntityContext.cs**
+   - Changed: 1x JsonConvert.PopulateObject → JsonSerializer.Deserialize + assign
+   - Updated: Uses Serializer.InternalSerializerOptions.Value
+
 ## Remaining Work
 
-### DurableTask.Core Files (12 remaining)
+### DurableTask.Core Files (10 remaining)
 
 #### High Priority - Complex Patterns
 
-**1. TaskEntityDispatcher.cs** (6 Newtonsoft usages)
-- 2x JsonConvert.SerializeObject → straightforward
-- 3x JsonConvert.PopulateObject → needs workaround
-- Challenge: PopulateObject doesn't have direct System.Text.Json equivalent
-- Solution: Deserialize to temp, manually copy OR use JsonDocument
-
-**2. OrchestrationEntityContext.cs** (1 usage)
-- 1x JsonConvert.PopulateObject → needs workaround
-- Same challenge as above
-
-**3. Command/OrchestratorActionConverter.cs**
+**1. Command/OrchestratorActionConverter.cs**
 - Custom JsonConverter extending JsonCreationConverter<T>
 - Uses JObject for type discrimination
 - Challenge: Complete rewrite needed for System.Text.Json.Serialization.JsonConverter<T>
 - Needs: Read type discriminator, create appropriate derived type
 
-**4. Entities/OperationFormat/OperationActionConverter.cs**
+**2. Entities/OperationFormat/OperationActionConverter.cs**
 - Same pattern as OrchestratorActionConverter
 - Custom converter with JObject usage
 
-**5. Serializing/JsonCreationConverter.cs**
+**3. Serializing/JsonCreationConverter.cs**
 - Base class for custom converters
 - Uses JObject
 - Challenge: Abstract base class, affects multiple converters
 - Solution: Rewrite as JsonConverter<T> base class using JsonDocument
 
-**6. Serializing/JsonDataConverter.cs** ⚠️ **MOST COMPLEX**
+**4. Serializing/JsonDataConverter.cs** ⚠️ **MOST COMPLEX**
 - Core serialization class used by entire framework
 - Uses TypeNameHandling.Objects for polymorphic serialization
 - Uses JsonSerializer/JsonTextWriter directly
@@ -91,7 +91,7 @@
   c) Source generation with known types
 - **CRITICAL:** This affects serialization format compatibility
 
-**7. Serializing/PackageUpgradeSerializationBinder.cs**
+**5. Serializing/PackageUpgradeSerializationBinder.cs**
 - Extends DefaultSerializationBinder from Newtonsoft
 - Used for backward compatibility with v1.0/v2.0 serialization
 - Challenge: No SerializationBinder concept in System.Text.Json
@@ -99,23 +99,24 @@
 
 #### Medium Priority - JObject/JToken Usage
 
-**8. Common/Utils.cs**
+**6. Common/Utils.cs**
 - 3x JObject usage
 - Solution: Replace with JsonDocument/JsonElement or JsonObject
 
-**9. ReflectionBasedTaskActivity.cs**
+**7. ReflectionBasedTaskActivity.cs**
 - 4x JObject usage  
 - Solution: Replace with JsonDocument/JsonElement
 
-**10. TraceContextBase.cs**
-- 1x JObject usage
-- Solution: Replace with JsonDocument/JsonElement
+**8. TraceContextBase.cs**
+- 1x JObject usage for extracting $type discriminator
+- Uses TypeNameHandling.Objects for polymorphic serialization
+- Solution: Replace with JsonDocument + custom type resolution
 
-**11. TaskActivity.cs**
+**9. TaskActivity.cs**
 - 2x JObject usage
 - Solution: Replace with JsonDocument/JsonElement
 
-**12. Command/OrchestratorAction.cs**
+**10. Command/OrchestratorAction.cs**
 - Uses [JsonConverter(typeof(OrchestrationActionConverter))]
 - Depends on OrchestratorActionConverter conversion
 
@@ -130,20 +131,22 @@ Not yet analyzed:
 
 ## Technical Challenges
 
-### 1. JsonConvert.PopulateObject
+### 1. ✅ JsonConvert.PopulateObject - SOLVED
 **Problem:** No direct equivalent in System.Text.Json for .NET 8+
 
-**Workarounds:**
+**Solution Used:** Deserialize and assign
 ```csharp
-// Option A: Deserialize and assign
-var obj = JsonSerializer.Deserialize<T>(json, options) ?? new T();
+// Old (Newtonsoft)
+var obj = new MyType();
+JsonConvert.PopulateObject(json, obj, settings);
 
-// Option B: Manual population using JsonDocument
-using var doc = JsonDocument.Parse(json);
-foreach (var prop in doc.RootElement.EnumerateObject()) {
-    // Set property via reflection or property access
-}
+// New (System.Text.Json)
+var obj = JsonSerializer.Deserialize<MyType>(json, options) ?? new MyType();
 ```
+
+**Why this works:** In all cases analyzed, objects were newly created with default constructors before PopulateObject was called. No pre-existing state needed to be preserved.
+
+**Files converted:** TaskEntityDispatcher.cs, OrchestrationEntityContext.cs
 
 ### 2. JObject/JToken
 **Problem:** Dynamic JSON manipulation
@@ -232,16 +235,16 @@ public class PolymorphicConverter<T> : JsonConverter<T> {
 
 ## Build Status
 
-**Current:** DurableTask.Core has errors due to incomplete conversion
-**Expected:** Build will pass after TaskEntityDispatcher and converters are fixed
-**Goal:** All 4 successfully building projects continue to build
+**Current:** ✅ DurableTask.Core builds successfully with 0 errors on .NET 8/10!
+**Achievement:** Resolved PopulateObject pattern, enabling successful build
+**Goal:** Continue to maintain build success while converting remaining files
 
 ## Estimated Remaining Time
 
 Based on Phase 2 instructions (6-8 hours total):
-- Completed: ~2 hours (simple conversions)
-- Remaining: ~4-6 hours
-  - PopulateObject conversions: 30 min
+- Completed: ~2-3 hours (simple conversions + PopulateObject)
+- Remaining: ~3-5 hours
+  - ✅ PopulateObject conversions: COMPLETE
   - JObject/JToken conversions: 1-2 hours
   - Custom converter rewrites: 2-3 hours
   - JsonDataConverter: 1-2 hours (most complex)
