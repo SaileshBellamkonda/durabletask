@@ -18,8 +18,8 @@ namespace DurableTask.Core
     using System.Linq;
     using System.Reflection;
     using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
     using DurableTask.Core.Exceptions;
-    using Newtonsoft.Json;
 
     // NOTE: This class is very similar to https://github.com/microsoft/durabletask-dotnet/blob/main/src/Abstractions/TaskFailureDetails.cs.
     //       Any functional changes to this class should be mirrored in that class and vice versa.
