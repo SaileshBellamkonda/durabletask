@@ -17,11 +17,10 @@ namespace DurableTask.Core.Entities
     using DurableTask.Core.Entities.EventFormat;
     using DurableTask.Core.Entities.OperationFormat;
     using DurableTask.Core.Exceptions;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text.Json;
 
     /// <summary>
     /// Tracks the entity-related state of an orchestration. 
@@ -366,13 +365,13 @@ namespace DurableTask.Core.Entities
         /// <returns></returns>
         public OperationResult DeserializeEntityResponseEvent(string eventContent)
         {
-            var responseMessage = new ResponseMessage();
+            ResponseMessage responseMessage;
 
             // for compatibility, we deserialize in a way that is resilient to any typename presence/absence/mismatch
             try
             {
                 // restore the scheduler state from the input
-                JsonConvert.PopulateObject(eventContent, responseMessage, Serializer.InternalSerializerSettings);
+                responseMessage = JsonSerializer.Deserialize<ResponseMessage>(eventContent, Serializer.InternalSerializerOptions.Value) ?? new ResponseMessage();
             }
             catch (Exception exception)
             {

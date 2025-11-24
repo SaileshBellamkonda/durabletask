@@ -21,10 +21,10 @@ namespace DurableTask.Core
     using DurableTask.Core.Logging;
     using DurableTask.Core.Middleware;
     using DurableTask.Core.Tracing;
-    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -360,7 +360,7 @@ namespace DurableTask.Core
                         BacklogQueueSize = schedulerState.Queue?.Count ?? 0,
                         LockedBy = schedulerState.LockedBy,
                     };
-                    var serializedEntityStatus = JsonConvert.SerializeObject(entityStatus, Serializer.InternalSerializerSettings);
+                    var serializedEntityStatus = JsonSerializer.Serialize(entityStatus, Serializer.InternalSerializerOptions.Value);
 
                     // create the new runtime state for the next execution
                     runtimeState = new OrchestrationRuntimeState();
@@ -454,7 +454,7 @@ namespace DurableTask.Core
             else
             {
                 // we persist the state of the entity scheduler and entity
-                return JsonConvert.SerializeObject(schedulerState, typeof(SchedulerState), Serializer.InternalSerializerSettings);
+                return JsonSerializer.Serialize(schedulerState, typeof(SchedulerState), Serializer.InternalSerializerOptions.Value);
             }
         }
 
@@ -480,7 +480,7 @@ namespace DurableTask.Core
                             try
                             {
                                 // restore the scheduler state from the input
-                                JsonConvert.PopulateObject(runtimeState.Input, schedulerState, Serializer.InternalSerializerSettings);
+                                schedulerState = JsonSerializer.Deserialize<SchedulerState>(runtimeState.Input, Serializer.InternalSerializerOptions.Value) ?? new SchedulerState();
                             }
                             catch (Exception exception)
                             {
@@ -495,11 +495,11 @@ namespace DurableTask.Core
                         if (EntityMessageEventNames.IsRequestMessage(eventRaisedEvent.Name))
                         {
                             // we are receiving an operation request or a lock request
-                            var requestMessage = new RequestMessage();
+                            RequestMessage requestMessage;
 
                             try
                             {
-                                JsonConvert.PopulateObject(eventRaisedEvent.Input, requestMessage, Serializer.InternalSerializerSettings);
+                                requestMessage = JsonSerializer.Deserialize<RequestMessage>(eventRaisedEvent.Input, Serializer.InternalSerializerOptions.Value) ?? new RequestMessage();
                             }
                             catch (Exception exception)
                             {
@@ -560,11 +560,11 @@ namespace DurableTask.Core
                         else if (EntityMessageEventNames.IsReleaseMessage(eventRaisedEvent.Name))
                         {
                             // we are receiving a lock release
-                            var message = new ReleaseMessage();
+                            ReleaseMessage message;
                             try
                             {
                                 // restore the scheduler state from the input
-                                JsonConvert.PopulateObject(eventRaisedEvent.Input, message, Serializer.InternalSerializerSettings);
+                                message = JsonSerializer.Deserialize<ReleaseMessage>(eventRaisedEvent.Input, Serializer.InternalSerializerOptions.Value) ?? new ReleaseMessage();
                             }
                             catch (Exception exception)
                             {
@@ -857,7 +857,7 @@ namespace DurableTask.Core
             string serializedContent = null;
             if (eventContent != null)
             {
-                serializedContent = JsonConvert.SerializeObject(eventContent, Serializer.InternalSerializerSettings);
+                serializedContent = JsonSerializer.Serialize(eventContent, Serializer.InternalSerializerOptions.Value);
             }
 
             var eventSentEvent = new EventSentEvent(effects.taskIdCounter++)
