@@ -18,16 +18,16 @@ namespace DurableTask.Core
     using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
+    using System.Text.Json;
+    using System.Text.Json.Nodes;
     using DurableTask.Core.Common;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// TraceContext keep the correlation value.
     /// </summary>
     public abstract class TraceContextBase
     {
-        private static readonly JsonSerializer serializer;
+        private static readonly JsonSerializerOptions serializerOptions;
 
         /// <summary>
         /// Default constructor 
@@ -39,14 +39,18 @@ namespace DurableTask.Core
 
         static TraceContextBase()
         {
-            CustomJsonSerializerSettings = new JsonSerializerSettings()
+            // Configure options to support polymorphic serialization with type discriminator
+            CustomJsonSerializerOptions = new JsonSerializerOptions()
             {
-                TypeNameHandling = TypeNameHandling.Objects,
-                PreserveReferencesHandling = PreserveReferencesHandling.Objects,
-                ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+                WriteIndented = false,
+                PropertyNameCaseInsensitive = true,
+                IncludeFields = false,
+                // Note: System.Text.Json doesn't have built-in TypeNameHandling like Newtonsoft
+                // For Phase 2, we rely on manual type resolution in Restore() method
+                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve,
             };
 
-            serializer = JsonSerializer.Create(CustomJsonSerializerSettings);   
+            serializerOptions = CustomJsonSerializerOptions;   
         }
 
         /// <summary>
@@ -76,45 +80,45 @@ namespace DurableTask.Core
         /// Current Activity only managed by this concrete class.
         /// This property is not serialized.
         /// </summary>
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
         internal Activity CurrentActivity { get; set; }
 
         /// <summary>
         /// Return if the orchestration is on replay
         /// </summary>
         /// <returns></returns>
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
         public bool IsReplay { get; set; } = false;
 
         /// <summary>
         /// Duration of this context. Valid after call Stop() method.
         /// </summary>
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
         public abstract TimeSpan Duration { get; }
 
-        [JsonIgnore]
-        static JsonSerializerSettings CustomJsonSerializerSettings { get; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        static JsonSerializerOptions CustomJsonSerializerOptions { get; }
 
 
         /// <summary>
         /// Serializable Json string of TraceContext
         /// </summary>
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
         public string SerializableTraceContext =>
-            Utils.SerializeToJson(serializer, this);
+            Utils.SerializeToJson(serializerOptions, this);
 
         /// <summary>
         /// Telemetry.Id Used for sending telemetry. refer this URL
         /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.applicationinsights.extensibility.implementation.operationtelemetry?view=azure-dotnet
         /// </summary>
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
         public abstract string TelemetryId { get; }
 
         /// <summary>
         /// Telemetry.Context.Operation.Id Used for sending telemetry refer this URL
         /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.applicationinsights.extensibility.implementation.operationtelemetry?view=azure-dotnet
         /// </summary>
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
         public abstract string TelemetryContextOperationId { get; }
 
         /// <summary>
@@ -135,7 +139,7 @@ namespace DurableTask.Core
         /// Telemetry.Context.Operation.ParentId Used for sending telemetry refer this URL
         /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.applicationinsights.extensibility.implementation.operationtelemetry?view=azure-dotnet
         /// </summary>
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
         public abstract string TelemetryContextOperationParentId { get; }
 
         /// <summary>
@@ -175,24 +179,30 @@ namespace DurableTask.Core
                 return TraceContextFactory.Empty;
             }
 
-            // Obtain typename and validate that it is a subclass of `TraceContextBase`.
-            // If it's not, we throw an exception.
+            // Parse JSON to determine the type
+            // System.Text.Json with ReferenceHandler.Preserve uses "$type" for type information
             Type traceContextType = null;
             Type traceContextBasetype = typeof(TraceContextBase);
 
-            JToken typeName = JObject.Parse(json)["$type"];
-            traceContextType = Type.GetType(typeName.Value<string>());
-            if (!traceContextType.IsSubclassOf(traceContextBasetype))
+            using (JsonDocument doc = JsonDocument.Parse(json))
             {
-                string typeNameStr = typeName.ToString();
+                if (doc.RootElement.TryGetProperty("$type", out JsonElement typeElement))
+                {
+                    string typeString = typeElement.GetString();
+                    traceContextType = Type.GetType(typeString);
+                }
+            }
+
+            if (traceContextType == null || !traceContextType.IsSubclassOf(traceContextBasetype))
+            {
                 string baseNameStr = traceContextBasetype.ToString();
-                throw new Exception($"Serialized TraceContext type ${typeNameStr} is not a subclass of ${baseNameStr}." +
+                throw new Exception($"Serialized TraceContext type is not a subclass of ${baseNameStr}. " +
                     "This probably means something went wrong in serializing the TraceContext.");
             }
 
-            // De-serialize the object now that we now it's safe
+            // De-serialize the object now that we know it's safe
             var restored = Utils.DeserializeFromJson(
-                serializer,
+                serializerOptions,
                 json,
                 traceContextType) as TraceContextBase;
             restored.OrchestrationTraceContexts = new Stack<TraceContextBase>(restored.OrchestrationTraceContexts);

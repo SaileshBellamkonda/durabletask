@@ -13,7 +13,7 @@
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
 namespace DurableTask.Core.Entities.OperationFormat
 {
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Defines a set of base properties for an operator action.

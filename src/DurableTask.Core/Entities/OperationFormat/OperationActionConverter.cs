@@ -13,16 +13,16 @@
 namespace DurableTask.Core.Entities.OperationFormat
 {
     using System;
-    using Newtonsoft.Json.Linq;
+    using System.Text.Json.Nodes;
     using DurableTask.Core.Serializing;
 
     internal class OperationActionConverter : JsonCreationConverter<OperationAction>
     {
-        protected override OperationAction CreateObject(Type objectType, JObject jObject)
+        protected override OperationAction CreateObject(Type objectType, JsonObject jsonObject)
         {
-            if (jObject.TryGetValue("OperationActionType", StringComparison.OrdinalIgnoreCase, out JToken actionType))
+            if (jsonObject.TryGetPropertyValue("OperationActionType", out JsonNode actionTypeNode))
             {
-                var type = (OperationActionType)int.Parse((string)actionType);
+                var type = (OperationActionType)int.Parse(actionTypeNode.ToString());
                 switch (type)
                 {
                     case OperationActionType.SendSignal:

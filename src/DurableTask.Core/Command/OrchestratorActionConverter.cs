@@ -14,16 +14,16 @@
 namespace DurableTask.Core.Command
 {
     using System;
-    using Newtonsoft.Json.Linq;
+    using System.Text.Json.Nodes;
     using DurableTask.Core.Serializing;
 
     internal class OrchestrationActionConverter : JsonCreationConverter<OrchestratorAction>
     {
-        protected override OrchestratorAction CreateObject(Type objectType, JObject jObject)
+        protected override OrchestratorAction CreateObject(Type objectType, JsonObject jsonObject)
         {
-            if (jObject.TryGetValue("OrchestratorActionType", StringComparison.OrdinalIgnoreCase, out JToken actionType))
+            if (jsonObject.TryGetPropertyValue("OrchestratorActionType", out JsonNode actionTypeNode))
             {
-                var type = (OrchestratorActionType)int.Parse((string)actionType);
+                var type = (OrchestratorActionType)int.Parse(actionTypeNode.ToString());
                 switch (type)
                 {
                     case OrchestratorActionType.CreateTimer:
