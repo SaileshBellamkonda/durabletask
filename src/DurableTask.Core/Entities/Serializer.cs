@@ -13,18 +13,23 @@
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
 namespace DurableTask.Core.Entities
 {
-    using Newtonsoft.Json;
+    using System;
+    using System.Text.Json;
+    using DurableTask.Core.Serialization;
 
     internal static class Serializer
     {
         /// <summary>
-        /// This serializer is used exclusively for internally defined data structures and cannot be customized by user.
-        /// This is intentional, to avoid problems caused by our unability to control the exact format.
+        /// This serializer options is used exclusively for internally defined data structures and cannot be customized by user.
+        /// This is intentional, to avoid problems caused by our inability to control the exact format.
         /// For example, including typenames can cause compatibility problems if the type name is later changed.
         /// </summary>
-        public static JsonSerializer InternalSerializer = JsonSerializer.Create(InternalSerializerSettings);
-
-        public static JsonSerializerSettings InternalSerializerSettings 
-            = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.None };
+        public static readonly Lazy<JsonSerializerOptions> InternalSerializerOptions = new Lazy<JsonSerializerOptions>(() =>
+        {
+            // Create options based on JsonSettings.Default but ensure TypeNameHandling is disabled
+            var options = new JsonSerializerOptions(JsonSettings.Default);
+            // System.Text.Json doesn't include type names by default, so no special configuration needed
+            return options;
+        });
     }
 }

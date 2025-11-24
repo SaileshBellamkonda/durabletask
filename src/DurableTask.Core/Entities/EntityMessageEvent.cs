@@ -12,9 +12,9 @@
 //  ----------------------------------------------------------------------------------
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
 using System;
+using System.Text.Json;
 using DurableTask.Core.Entities.EventFormat;
 using DurableTask.Core.Serializing.Internal;
-using Newtonsoft.Json;
 
 namespace DurableTask.Core.Entities
 {
@@ -56,7 +56,7 @@ namespace DurableTask.Core.Entities
         /// <returns></returns>
         public string AsSerializedString()
         {
-            return JsonConvert.SerializeObject(message, Serializer.InternalSerializerSettings);
+            return JsonSerializer.Serialize(message, Serializer.InternalSerializerOptions.Value);
         }
 
         /// <summary>

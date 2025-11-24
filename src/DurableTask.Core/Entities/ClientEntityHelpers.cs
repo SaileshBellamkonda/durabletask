@@ -13,11 +13,10 @@
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
 namespace DurableTask.Core.Entities
 {
+    using System;
+    using System.Text.Json;
     using DurableTask.Core.Entities;
     using DurableTask.Core.Entities.EventFormat;
-    using Newtonsoft.Json.Linq;
-    using Newtonsoft.Json;
-    using System;
     using DurableTask.Core.Tracing;
 
     /// <summary>
@@ -102,7 +101,7 @@ namespace DurableTask.Core.Entities
                 return null;
             }
            
-            var schedulerState = JsonConvert.DeserializeObject<SchedulerState>(serializedSchedulerState, Serializer.InternalSerializerSettings)!;
+            var schedulerState = JsonSerializer.Deserialize<SchedulerState>(serializedSchedulerState, Serializer.InternalSerializerOptions.Value)!;
             return schedulerState.EntityState;
         }
 
@@ -117,7 +116,7 @@ namespace DurableTask.Core.Entities
                 return null;
             }
 
-            return JsonConvert.DeserializeObject<EntityStatus>(orchestrationCustomStatus, Serializer.InternalSerializerSettings)!;
+            return JsonSerializer.Deserialize<EntityStatus>(orchestrationCustomStatus, Serializer.InternalSerializerOptions.Value)!;
         }
     }
 }

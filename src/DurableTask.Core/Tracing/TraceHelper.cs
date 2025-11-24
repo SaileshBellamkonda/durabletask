@@ -20,7 +20,6 @@ namespace DurableTask.Core.Tracing
     using System.Runtime.ExceptionServices;
     using DurableTask.Core.Common;
     using DurableTask.Core.History;
-    using Newtonsoft.Json;
     using DurableTask.Core.Entities.EventFormat;
     using DurableTask.Core.Entities;
     using DurableTask.Core.Entities.OperationFormat;
