@@ -72,9 +72,8 @@ namespace DurableTask.Core.Common
 
         /// <summary>
         /// Serialize some object payload to a JSON-string representation.
-        /// This utility is resilient to end-user changes in the DefaultSettings of Newtonsoft.
         /// </summary>
-        /// <param name="serializer">The serializer to use.</param>
+        /// <param name="options">The JsonSerializerOptions to use.</param>
         /// <param name="payload">The object to serialize.</param>
         /// <returns>The JSON-string representation of the payload</returns>
         public static string SerializeToJson(JsonSerializerOptions options, object payload)
