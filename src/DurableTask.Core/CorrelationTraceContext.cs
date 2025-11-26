@@ -11,35 +11,33 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core
+namespace DurableTask.Core;
+using System.Threading;
+
+/// <summary>
+/// Manage TraceContext for Dependency.
+/// This class share the TraceContext using AsyncLocal.
+/// </summary>
+public class CorrelationTraceContext
 {
-    using System.Threading;
+    static readonly AsyncLocal<TraceContextBase> current = new AsyncLocal<TraceContextBase>();
+    static readonly AsyncLocal<bool> generateDependencyTracking = new AsyncLocal<bool>(); 
 
     /// <summary>
-    /// Manage TraceContext for Dependency.
-    /// This class share the TraceContext using AsyncLocal.
+    /// Share the TraceContext on the call graph contextBase.
     /// </summary>
-    public class CorrelationTraceContext
+    public static TraceContextBase Current
     {
-        static readonly AsyncLocal<TraceContextBase> current = new AsyncLocal<TraceContextBase>();
-        static readonly AsyncLocal<bool> generateDependencyTracking = new AsyncLocal<bool>(); 
+        get { return current.Value; }
+        set { current.Value = value; }
+    }
 
-        /// <summary>
-        /// Share the TraceContext on the call graph contextBase.
-        /// </summary>
-        public static TraceContextBase Current
-        {
-            get { return current.Value; }
-            set { current.Value = value; }
-        }
-
-        /// <summary>
-        /// Set true if a DependencyTelemetry tracking is generated on the TaskHubQueue.
-        /// </summary>
-        public static bool GenerateDependencyTracking
-        {
-            get { return generateDependencyTracking.Value;  }
-            set { generateDependencyTracking.Value = value; }
-        }
+    /// <summary>
+    /// Set true if a DependencyTelemetry tracking is generated on the TaskHubQueue.
+    /// </summary>
+    public static bool GenerateDependencyTracking
+    {
+        get { return generateDependencyTracking.Value;  }
+        set { generateDependencyTracking.Value = value; }
     }
 }

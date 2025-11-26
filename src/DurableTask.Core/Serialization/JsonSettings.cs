@@ -1,4 +1,4 @@
-//  ----------------------------------------------------------------------------------
+﻿//  ----------------------------------------------------------------------------------
 //  Copyright Microsoft Corporation
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -15,52 +15,50 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace DurableTask.Core.Serialization
+namespace DurableTask.Core.Serialization;
+/// <summary>
+/// Provides consistent JSON serialization settings across DurableTask.
+/// Configured to match Newtonsoft.Json defaults where possible for compatibility.
+/// </summary>
+public static class JsonSettings
 {
-    /// <summary>
-    /// Provides consistent JSON serialization settings across DurableTask.
-    /// Configured to match Newtonsoft.Json defaults where possible for compatibility.
-    /// </summary>
-    public static class JsonSettings
+    private static readonly Lazy<JsonSerializerOptions> _defaultOptions = new(() =>
     {
-        private static readonly Lazy<JsonSerializerOptions> _defaultOptions = new(() =>
+        var options = new JsonSerializerOptions
         {
-            var options = new JsonSerializerOptions
+            // Match Newtonsoft.Json defaults where possible for compatibility
+            PropertyNamingPolicy = null, // Use PascalCase (same as Newtonsoft default)
+            WriteIndented = false,
+            DefaultIgnoreCondition = JsonIgnoreCondition.Never,
+            PropertyNameCaseInsensitive = true, // More forgiving than Newtonsoft
+            Converters =
             {
-                // Match Newtonsoft.Json defaults where possible for compatibility
-                PropertyNamingPolicy = null, // Use PascalCase (same as Newtonsoft default)
-                WriteIndented = false,
-                DefaultIgnoreCondition = JsonIgnoreCondition.Never,
-                PropertyNameCaseInsensitive = true, // More forgiving than Newtonsoft
-                Converters =
-                {
-                    new JsonStringEnumConverter() // Serialize enums as strings (Newtonsoft default)
-                }
-            };
-            
-            return options;
-        });
-
-        /// <summary>
-        /// Gets the default JSON serialization options for DurableTask.
-        /// Uses PascalCase property naming and serializes enums as strings for compatibility.
-        /// </summary>
-        public static JsonSerializerOptions Default => _defaultOptions.Value;
-        
-        /// <summary>
-        /// Gets JSON serialization options with indented formatting.
-        /// Useful for debugging and logging.
-        /// </summary>
-        public static JsonSerializerOptions Indented
-        {
-            get
-            {
-                var options = new JsonSerializerOptions(Default)
-                {
-                    WriteIndented = true
-                };
-                return options;
+                new JsonStringEnumConverter() // Serialize enums as strings (Newtonsoft default)
             }
+        };
+        
+        return options;
+    });
+
+    /// <summary>
+    /// Gets the default JSON serialization options for DurableTask.
+    /// Uses PascalCase property naming and serializes enums as strings for compatibility.
+    /// </summary>
+    public static JsonSerializerOptions Default => _defaultOptions.Value;
+    
+    /// <summary>
+    /// Gets JSON serialization options with indented formatting.
+    /// Useful for debugging and logging.
+    /// </summary>
+    public static JsonSerializerOptions Indented
+    {
+        get
+        {
+            var options = new JsonSerializerOptions(Default)
+            {
+                WriteIndented = true
+            };
+            return options;
         }
     }
 }

@@ -11,32 +11,30 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
-namespace DurableTask.Core.Command
+namespace DurableTask.Core.Command;
+/// <summary>
+/// Orchestrator action for sending external events to other orchestrations.
+/// </summary>
+public class SendEventOrchestratorAction : OrchestratorAction
 {
+    // NOTE: Actions must be serializable by a variety of different serializer types to support out-of-process execution.
+    //       To ensure maximum compatibility, all properties should be public and settable by default.
+
+    /// <inheritdoc/>
+    public override OrchestratorActionType OrchestratorActionType => OrchestratorActionType.SendEvent;
+
     /// <summary>
-    /// Orchestrator action for sending external events to other orchestrations.
+    /// The orchestration instance to receive the event.
     /// </summary>
-    public class SendEventOrchestratorAction : OrchestratorAction
-    {
-        // NOTE: Actions must be serializable by a variety of different serializer types to support out-of-process execution.
-        //       To ensure maximum compatibility, all properties should be public and settable by default.
+    public OrchestrationInstance? Instance { get; set; }
 
-        /// <inheritdoc/>
-        public override OrchestratorActionType OrchestratorActionType => OrchestratorActionType.SendEvent;
+    /// <summary>
+    /// The name of the external event.
+    /// </summary>
+    public string? EventName { get; set; }
 
-        /// <summary>
-        /// The orchestration instance to receive the event.
-        /// </summary>
-        public OrchestrationInstance? Instance { get; set; }
-
-        /// <summary>
-        /// The name of the external event.
-        /// </summary>
-        public string? EventName { get; set; }
-
-        /// <summary>
-        /// The payload data of the external event.
-        /// </summary>
-        public string? EventData { get; set; }
-    }
+    /// <summary>
+    /// The payload data of the external event.
+    /// </summary>
+    public string? EventData { get; set; }
 }

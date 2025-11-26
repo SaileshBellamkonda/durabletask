@@ -11,50 +11,48 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
-namespace DurableTask.Core.Entities.OperationFormat
+namespace DurableTask.Core.Entities.OperationFormat;
+using DurableTask.Core.Tracing;
+using System;
+
+/// <summary>
+/// Operation action for sending a signal.
+/// </summary>
+public class SendSignalOperationAction : OperationAction
 {
-    using DurableTask.Core.Tracing;
-    using System;
+    /// <inheritdoc/>
+    public override OperationActionType OperationActionType => OperationActionType.SendSignal;
+
+    // NOTE: Actions must be serializable by a variety of different serializer types to support out-of-process execution.
+    //       To ensure maximum compatibility, all properties should be public and settable by default.
 
     /// <summary>
-    /// Operation action for sending a signal.
+    /// The destination entity for the signal.
     /// </summary>
-    public class SendSignalOperationAction : OperationAction
-    {
-        /// <inheritdoc/>
-        public override OperationActionType OperationActionType => OperationActionType.SendSignal;
+    public string? InstanceId { get; set; }
 
-        // NOTE: Actions must be serializable by a variety of different serializer types to support out-of-process execution.
-        //       To ensure maximum compatibility, all properties should be public and settable by default.
+    /// <summary>
+    /// The name of the operation being signaled.
+    /// </summary>
+    public string? Name { get; set; }
 
-        /// <summary>
-        /// The destination entity for the signal.
-        /// </summary>
-        public string? InstanceId { get; set; }
+    /// <summary>
+    /// The input of the operation being signaled.
+    /// </summary>
+    public string? Input { get; set; }
 
-        /// <summary>
-        /// The name of the operation being signaled.
-        /// </summary>
-        public string? Name { get; set; }
+    /// <summary>
+    /// Optionally, a scheduled delivery time for the signal.
+    /// </summary>
+    public DateTime? ScheduledTime { get; set; }
 
-        /// <summary>
-        /// The input of the operation being signaled.
-        /// </summary>
-        public string? Input { get; set; }
+    /// <summary>
+    /// The time the signal request was generated.
+    /// </summary>
+    public DateTimeOffset? RequestTime { get; set; }
 
-        /// <summary>
-        /// Optionally, a scheduled delivery time for the signal.
-        /// </summary>
-        public DateTime? ScheduledTime { get; set; }
-
-        /// <summary>
-        /// The time the signal request was generated.
-        /// </summary>
-        public DateTimeOffset? RequestTime { get; set; }
-
-        /// <summary>
-        /// The parent trace context for the signal, if any.
-        /// </summary>
-        public DistributedTraceContext? ParentTraceContext { get; set; }
-    }
+    /// <summary>
+    /// The parent trace context for the signal, if any.
+    /// </summary>
+    public DistributedTraceContext? ParentTraceContext { get; set; }
 }

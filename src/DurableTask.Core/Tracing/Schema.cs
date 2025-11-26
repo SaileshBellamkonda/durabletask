@@ -11,30 +11,28 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core.Tracing
+namespace DurableTask.Core.Tracing;
+internal static class Schema
 {
-    internal static class Schema
+    internal static class Task
     {
-        internal static class Task
-        {
-            internal const string Type = "durabletask.type";
-            internal const string Name = "durabletask.task.name";
-            internal const string Version = "durabletask.task.version";
-            internal const string InstanceId = "durabletask.task.instance_id";
-            internal const string ExecutionId = "durabletask.task.execution_id";
-            internal const string Status = "durabletask.task.status";
-            internal const string TaskId = "durabletask.task.task_id";
-            internal const string EventTargetInstanceId = "durabletask.event.target_instance_id";
-            internal const string FireAt = "durabletask.fire_at";
-            internal const string Operation = "durabletask.task.operation";
-            internal const string ScheduledTime = "durabletask.task.scheduled_time";
-            internal const string ErrorMessage = "durabletask.entity.error_message";
-        }
+        internal const string Type = "durabletask.type";
+        internal const string Name = "durabletask.task.name";
+        internal const string Version = "durabletask.task.version";
+        internal const string InstanceId = "durabletask.task.instance_id";
+        internal const string ExecutionId = "durabletask.task.execution_id";
+        internal const string Status = "durabletask.task.status";
+        internal const string TaskId = "durabletask.task.task_id";
+        internal const string EventTargetInstanceId = "durabletask.event.target_instance_id";
+        internal const string FireAt = "durabletask.fire_at";
+        internal const string Operation = "durabletask.task.operation";
+        internal const string ScheduledTime = "durabletask.task.scheduled_time";
+        internal const string ErrorMessage = "durabletask.entity.error_message";
+    }
 
-        internal static class Status
-        {
-            internal const string Code = "otel.status_code";
-            internal const string Description = "otel.status_description";
-        }
+    internal static class Status
+    {
+        internal const string Code = "otel.status_code";
+        internal const string Description = "otel.status_description";
     }
 }

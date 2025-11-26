@@ -10,21 +10,19 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
-namespace DurableTask.Core
-{
-    using System.Collections.Generic;
-    using System.Runtime.Serialization;
+namespace DurableTask.Core;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
 
+/// <summary>
+/// Context associated with the orchestration being executed.
+/// </summary>
+[DataContract]
+public class OrchestrationExecutionContext
+{
     /// <summary>
-    /// Context associated with the orchestration being executed.
+    /// Gets the orchestration tags
     /// </summary>
-    [DataContract]
-    public class OrchestrationExecutionContext
-    {
-        /// <summary>
-        /// Gets the orchestration tags
-        /// </summary>
-        [DataMember]
-        public IDictionary<string, string> OrchestrationTags { get; internal set; }
-    }
+    [DataMember]
+    public IDictionary<string, string> OrchestrationTags { get; internal set; }
 }

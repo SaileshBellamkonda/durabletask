@@ -11,77 +11,75 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core.History
+namespace DurableTask.Core.History;
+using System.Runtime.Serialization;
+
+/// <summary>
+/// A history event for sub orchestration instance creation
+/// </summary>
+[DataContract]
+public class SubOrchestrationInstanceCreatedEvent : HistoryEvent
 {
-    using System.Runtime.Serialization;
+    /// <summary>
+    /// Creates a new SubOrchestrationInstanceCreatedEvent with the supplied event id
+    /// </summary>
+    /// <param name="eventId">The event id of the history event</param>
+    public SubOrchestrationInstanceCreatedEvent(int eventId)
+        : base(eventId)
+    {
+    }
 
     /// <summary>
-    /// A history event for sub orchestration instance creation
+    /// Creates a new ExecutionStartedEvent with the same fields as <paramref name="other"/>.
     /// </summary>
-    [DataContract]
-    public class SubOrchestrationInstanceCreatedEvent : HistoryEvent
+    internal SubOrchestrationInstanceCreatedEvent(SubOrchestrationInstanceCreatedEvent other)
     {
-        /// <summary>
-        /// Creates a new SubOrchestrationInstanceCreatedEvent with the supplied event id
-        /// </summary>
-        /// <param name="eventId">The event id of the history event</param>
-        public SubOrchestrationInstanceCreatedEvent(int eventId)
-            : base(eventId)
-        {
-        }
+        // Copy base class fields
+        EventId = other.EventId;
+        Timestamp = other.Timestamp;
+        ExtensionData = other.ExtensionData;
+        IsPlayed = other.IsPlayed;
 
-        /// <summary>
-        /// Creates a new ExecutionStartedEvent with the same fields as <paramref name="other"/>.
-        /// </summary>
-        internal SubOrchestrationInstanceCreatedEvent(SubOrchestrationInstanceCreatedEvent other)
-        {
-            // Copy base class fields
-            EventId = other.EventId;
-            Timestamp = other.Timestamp;
-            ExtensionData = other.ExtensionData;
-            IsPlayed = other.IsPlayed;
-
-            // Copy all other fields
-            Name = other.Name;
-            Version = other.Version;
-            InstanceId = other.InstanceId;
-            Input = other.Input;
-            ClientSpanId = other.ClientSpanId;
-        }
-
-        /// <summary>
-        /// Gets the event type
-        /// </summary>
-        public override EventType EventType => EventType.SubOrchestrationInstanceCreated;
-
-        /// <summary>
-        /// Gets or sets the sub orchestration Name
-        /// </summary>
-        [DataMember]
-        public string Name { get; set; }
-
-        /// <summary>
-        /// Gets or sets the sub orchestration Version
-        /// </summary>
-        [DataMember]
-        public string Version { get; set; }
-
-        /// <summary>
-        /// Gets or sets the instance Id
-        /// </summary>
-        [DataMember]
-        public string InstanceId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the sub orchestration's serialized input
-        /// </summary>
-        [DataMember]
-        public string Input { get; set; }
-
-        /// <summary>
-        /// Gets or sets the sub orchestration's client span Id
-        /// </summary>
-        [DataMember]
-        public string ClientSpanId { get; set; }
+        // Copy all other fields
+        Name = other.Name;
+        Version = other.Version;
+        InstanceId = other.InstanceId;
+        Input = other.Input;
+        ClientSpanId = other.ClientSpanId;
     }
+
+    /// <summary>
+    /// Gets the event type
+    /// </summary>
+    public override EventType EventType => EventType.SubOrchestrationInstanceCreated;
+
+    /// <summary>
+    /// Gets or sets the sub orchestration Name
+    /// </summary>
+    [DataMember]
+    public string Name { get; set; }
+
+    /// <summary>
+    /// Gets or sets the sub orchestration Version
+    /// </summary>
+    [DataMember]
+    public string Version { get; set; }
+
+    /// <summary>
+    /// Gets or sets the instance Id
+    /// </summary>
+    [DataMember]
+    public string InstanceId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the sub orchestration's serialized input
+    /// </summary>
+    [DataMember]
+    public string Input { get; set; }
+
+    /// <summary>
+    /// Gets or sets the sub orchestration's client span Id
+    /// </summary>
+    [DataMember]
+    public string ClientSpanId { get; set; }
 }

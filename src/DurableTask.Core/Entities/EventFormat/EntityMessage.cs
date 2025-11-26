@@ -11,18 +11,16 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
-namespace DurableTask.Core.Entities.EventFormat
+namespace DurableTask.Core.Entities.EventFormat;
+using System.Runtime.Serialization;
+
+/// <summary>
+/// The format of entity messages is kept json-deserialization-compatible with the original format.
+/// </summary>
+[DataContract]
+internal abstract class EntityMessage  
 {
-    using System.Runtime.Serialization;
+    public abstract string GetShortDescription();
 
-    /// <summary>
-    /// The format of entity messages is kept json-deserialization-compatible with the original format.
-    /// </summary>
-    [DataContract]
-    internal abstract class EntityMessage  
-    {
-        public abstract string GetShortDescription();
-
-        public override string ToString() => this.GetShortDescription();
-    }
+    public override string ToString() => this.GetShortDescription();
 }

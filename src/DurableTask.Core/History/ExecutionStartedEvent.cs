@@ -11,132 +11,130 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core.History
+namespace DurableTask.Core.History;
+using DurableTask.Core.Tracing;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.Serialization;
+
+/// <summary>
+/// A history event for orchestration execution starting
+/// </summary>
+[DataContract]
+public class ExecutionStartedEvent : HistoryEvent, ISupportsDurableTraceContext
 {
-    using DurableTask.Core.Tracing;
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Runtime.Serialization;
+    /// <summary>
+    /// The orchestration instance for this event
+    /// </summary>
+    [DataMember] public OrchestrationInstance OrchestrationInstance;
 
     /// <summary>
-    /// A history event for orchestration execution starting
+    /// Creates a new ExecutionStartedEvent with the supplied parameters
     /// </summary>
-    [DataContract]
-    public class ExecutionStartedEvent : HistoryEvent, ISupportsDurableTraceContext
+    /// <param name="eventId">The event id of the history event</param>
+    /// <param name="input">The serialized orchestration input </param>
+    public ExecutionStartedEvent(int eventId, string input)
+        : base(eventId)
     {
-        /// <summary>
-        /// The orchestration instance for this event
-        /// </summary>
-        [DataMember] public OrchestrationInstance OrchestrationInstance;
+        Input = input;
+    }
 
-        /// <summary>
-        /// Creates a new ExecutionStartedEvent with the supplied parameters
-        /// </summary>
-        /// <param name="eventId">The event id of the history event</param>
-        /// <param name="input">The serialized orchestration input </param>
-        public ExecutionStartedEvent(int eventId, string input)
-            : base(eventId)
-        {
-            Input = input;
-        }
+    /// <summary>
+    /// Creates a new ExecutionStartedEvent
+    /// </summary>
+    internal ExecutionStartedEvent()
+    {
+    }
 
-        /// <summary>
-        /// Creates a new ExecutionStartedEvent
-        /// </summary>
-        internal ExecutionStartedEvent()
-        {
-        }
+    /// <summary>
+    /// Creates a new ExecutionStartedEvent with the same fields as <paramref name="other"/>.
+    /// A deep copy is performed on all non-base class fields.
+    /// </summary>
+    internal ExecutionStartedEvent(ExecutionStartedEvent other)
+    {
+        // Copy base class fields
+        EventId = other.EventId;
+        Timestamp = other.Timestamp;
+        ExtensionData = other.ExtensionData;
+        IsPlayed = other.IsPlayed;
 
-        /// <summary>
-        /// Creates a new ExecutionStartedEvent with the same fields as <paramref name="other"/>.
-        /// A deep copy is performed on all non-base class fields.
-        /// </summary>
-        internal ExecutionStartedEvent(ExecutionStartedEvent other)
-        {
-            // Copy base class fields
-            EventId = other.EventId;
-            Timestamp = other.Timestamp;
-            ExtensionData = other.ExtensionData;
-            IsPlayed = other.IsPlayed;
+        // Deep copy all other fields
+        OrchestrationInstance = other.OrchestrationInstance?.Clone();
+        ParentInstance = other.ParentInstance?.Clone();
+        ParentTraceContext = other.ParentTraceContext?.Clone();
+        Input = other.Input;
+        Name = other.Name;
+        Version = other.Version;
+        Tags = other.Tags != null ? new Dictionary<string, string>(other.Tags) : null;
+        Correlation = other.Correlation;
+        ScheduledStartTime = other.ScheduledStartTime;
+        Generation = other.Generation;
+    }
 
-            // Deep copy all other fields
-            OrchestrationInstance = other.OrchestrationInstance?.Clone();
-            ParentInstance = other.ParentInstance?.Clone();
-            ParentTraceContext = other.ParentTraceContext?.Clone();
-            Input = other.Input;
-            Name = other.Name;
-            Version = other.Version;
-            Tags = other.Tags != null ? new Dictionary<string, string>(other.Tags) : null;
-            Correlation = other.Correlation;
-            ScheduledStartTime = other.ScheduledStartTime;
-            Generation = other.Generation;
-        }
+    /// <summary>
+    /// Gets the event type
+    /// </summary>
+    public override EventType EventType => EventType.ExecutionStarted;
 
-        /// <summary>
-        /// Gets the event type
-        /// </summary>
-        public override EventType EventType => EventType.ExecutionStarted;
+    /// <summary>
+    /// Gets or sets the parent instance of the event 
+    /// </summary>
+    [DataMember]
+    public ParentInstance ParentInstance { get; set; }
 
-        /// <summary>
-        /// Gets or sets the parent instance of the event 
-        /// </summary>
-        [DataMember]
-        public ParentInstance ParentInstance { get; set; }
+    /// <summary>
+    /// Gets or sets the orchestration name
+    /// </summary>
+    [DataMember]
+    public string Name { get; set; }
 
-        /// <summary>
-        /// Gets or sets the orchestration name
-        /// </summary>
-        [DataMember]
-        public string Name { get; set; }
+    /// <summary>
+    /// Gets or sets the orchestration version
+    /// </summary>
+    [DataMember]
+    public string Version { get; set; }
 
-        /// <summary>
-        /// Gets or sets the orchestration version
-        /// </summary>
-        [DataMember]
-        public string Version { get; set; }
+    /// <summary>
+    /// Gets or sets the serialized input to the orchestration
+    /// </summary>
+    [DataMember]
+    public string Input { get; set; }
 
-        /// <summary>
-        /// Gets or sets the serialized input to the orchestration
-        /// </summary>
-        [DataMember]
-        public string Input { get; set; }
+    /// <summary>
+    /// Gets or sets a dictionary of tags of string, string
+    /// </summary>
+    [DataMember]
+    public IDictionary<string, string> Tags { get; set; }
 
-        /// <summary>
-        /// Gets or sets a dictionary of tags of string, string
-        /// </summary>
-        [DataMember]
-        public IDictionary<string, string> Tags { get; set; }
+    // TODO: Make this property obsolete
+    /// <summary>
+    /// Gets or sets the serialized end-to-end correlation state.
+    /// </summary>
+    [DataMember]
+    public string Correlation { get; set; }
 
-        // TODO: Make this property obsolete
-        /// <summary>
-        /// Gets or sets the serialized end-to-end correlation state.
-        /// </summary>
-        [DataMember]
-        public string Correlation { get; set; }
+    /// <summary>
+    /// The W3C trace context associated with this event.
+    /// </summary>
+    [DataMember]
+    public DistributedTraceContext ParentTraceContext { get; set; }
 
-        /// <summary>
-        /// The W3C trace context associated with this event.
-        /// </summary>
-        [DataMember]
-        public DistributedTraceContext ParentTraceContext { get; set; }
+    /// <summary>
+    /// Gets or sets date to start the orchestration
+    /// </summary>
+    [DataMember]
+    public DateTime? ScheduledStartTime { get; set; }
 
-        /// <summary>
-        /// Gets or sets date to start the orchestration
-        /// </summary>
-        [DataMember]
-        public DateTime? ScheduledStartTime { get; set; }
+    /// <summary>
+    /// Gets or sets the generation of the orchestration
+    /// </summary>
+    [DataMember]
+    public int? Generation { get; set; }
 
-        /// <summary>
-        /// Gets or sets the generation of the orchestration
-        /// </summary>
-        [DataMember]
-        public int? Generation { get; set; }
-
-        // Used for Continue-as-New scenarios
-        internal void SetParentTraceContext(ExecutionStartedEvent parent)
-        {
-            this.ParentTraceContext = parent.ParentTraceContext;
-        }
+    // Used for Continue-as-New scenarios
+    internal void SetParentTraceContext(ExecutionStartedEvent parent)
+    {
+        this.ParentTraceContext = parent.ParentTraceContext;
     }
 }

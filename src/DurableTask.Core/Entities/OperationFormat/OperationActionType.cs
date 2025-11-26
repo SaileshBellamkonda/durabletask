@@ -11,21 +11,19 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
-namespace DurableTask.Core.Entities.OperationFormat
+namespace DurableTask.Core.Entities.OperationFormat;
+/// <summary>
+/// Enumeration of entity operation actions.
+/// </summary>
+public enum OperationActionType
 {
     /// <summary>
-    /// Enumeration of entity operation actions.
+    /// A signal was sent to an entity
     /// </summary>
-    public enum OperationActionType
-    {
-        /// <summary>
-        /// A signal was sent to an entity
-        /// </summary>
-        SendSignal,
+    SendSignal,
 
-        /// <summary>
-        /// A new fire-and-forget orchestration was started
-        /// </summary>
-        StartNewOrchestration,
-    }
+    /// <summary>
+    /// A new fire-and-forget orchestration was started
+    /// </summary>
+    StartNewOrchestration,
 }

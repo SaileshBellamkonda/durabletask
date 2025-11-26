@@ -11,20 +11,18 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.AzureServiceFabric
+namespace DurableTask.AzureServiceFabric;
+using DurableTask.Core;
+
+static class OrchestrationStatusExtensions
 {
-    using DurableTask.Core;
-
-    static class OrchestrationStatusExtensions
+    public static bool IsTerminalState(this OrchestrationStatus status)
     {
-        public static bool IsTerminalState(this OrchestrationStatus status)
-        {
-            return !status.IsRunningOrPending();
-        }
+        return !status.IsRunningOrPending();
+    }
 
-        public static bool IsRunningOrPending(this OrchestrationStatus status)
-        {
-            return status == OrchestrationStatus.Pending || status == OrchestrationStatus.Running;
-        }
+    public static bool IsRunningOrPending(this OrchestrationStatus status)
+    {
+        return status == OrchestrationStatus.Pending || status == OrchestrationStatus.Running;
     }
 }

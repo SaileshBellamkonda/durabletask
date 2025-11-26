@@ -1,4 +1,4 @@
-//  ----------------------------------------------------------------------------------
+﻿//  ----------------------------------------------------------------------------------
 //  Copyright Microsoft Corporation
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -11,36 +11,32 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
-namespace DurableTask.Core
+namespace DurableTask.Core;
+using System;
+using System.Collections.Generic;
+using DurableTask.Core.Exceptions;
+
+/// <summary>
+/// Extension methods for <see cref="IExceptionPropertiesProvider"/>.
+/// </summary>
+public static class ExceptionPropertiesProviderExtensions
 {
-    using System;
-    using System.Collections.Generic;
-    using DurableTask.Core.Exceptions;
-
     /// <summary>
-    /// Extension methods for <see cref="IExceptionPropertiesProvider"/>.
+    /// Extracts properties of the exception specified at provider.
     /// </summary>
-    public static class ExceptionPropertiesProviderExtensions
+    public static IDictionary<string, object?>? ExtractProperties(this IExceptionPropertiesProvider? provider, Exception exception)
     {
-        /// <summary>
-        /// Extracts properties of the exception specified at provider.
-        /// </summary>
-        public static IDictionary<string, object?>? ExtractProperties(this IExceptionPropertiesProvider? provider, Exception exception)
+        if (exception is OrchestrationException orchestrationException &&
+            orchestrationException.FailureDetails?.Properties != null)
         {
-            if (exception is OrchestrationException orchestrationException &&
-                orchestrationException.FailureDetails?.Properties != null)
-            {
-                return orchestrationException.FailureDetails.Properties;
-            }
-
-            if (provider == null)
-            {
-                return null;
-            }
-
-            return provider.GetExceptionProperties(exception);
+            return orchestrationException.FailureDetails.Properties;
         }
+
+        if (provider == null)
+        {
+            return null;
+        }
+
+        return provider.GetExceptionProperties(exception);
     }
 }
-
-

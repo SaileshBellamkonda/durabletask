@@ -11,84 +11,82 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
-namespace DurableTask.Core.Tracing
+namespace DurableTask.Core.Tracing;
+using System;
+using System.Runtime.Serialization;
+
+/// <summary>
+/// W3C-compliant distributed trace context.
+/// Spec: https://www.w3.org/TR/trace-context/.
+/// </summary>
+[DataContract]
+public class DistributedTraceContext
 {
-    using System;
-    using System.Runtime.Serialization;
+    private string? traceState;
 
     /// <summary>
-    /// W3C-compliant distributed trace context.
-    /// Spec: https://www.w3.org/TR/trace-context/.
+    /// Initializes a new instance of the <see cref="DistributedTraceContext"/> class.
     /// </summary>
-    [DataContract]
-    public class DistributedTraceContext
+    /// <param name="traceParent">The W3C traceparent ID.</param>
+    /// <param name="traceState">The optional W3C tracestate data.</param>
+    public DistributedTraceContext(string traceParent, string? traceState = null)
     {
-        private string? traceState;
+        this.TraceParent = traceParent;
+        this.traceState = traceState;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DistributedTraceContext"/> class.
-        /// </summary>
-        /// <param name="traceParent">The W3C traceparent ID.</param>
-        /// <param name="traceState">The optional W3C tracestate data.</param>
-        public DistributedTraceContext(string traceParent, string? traceState = null)
+    /// <summary>
+    /// The W3C traceparent data: https://www.w3.org/TR/trace-context/#traceparent-header
+    /// </summary>
+    [DataMember]
+    public string TraceParent { get; set; }
+
+    /// <summary>
+    /// The optional W3C tracestate parameter: https://www.w3.org/TR/trace-context/#tracestate-header
+    /// </summary>
+    [DataMember]
+    public string? TraceState
+    {
+        get
         {
-            this.TraceParent = traceParent;
-            this.traceState = traceState;
+            return this.traceState;
         }
-
-        /// <summary>
-        /// The W3C traceparent data: https://www.w3.org/TR/trace-context/#traceparent-header
-        /// </summary>
-        [DataMember]
-        public string TraceParent { get; set; }
-
-        /// <summary>
-        /// The optional W3C tracestate parameter: https://www.w3.org/TR/trace-context/#tracestate-header
-        /// </summary>
-        [DataMember]
-        public string? TraceState
+        set
         {
-            get
-            {
-                return this.traceState;
-            }
-            set
-            {
-                // The W3C spec allows vendors to truncate the trace state if it exceeds 513 characters,
-                // but it has very specific requirements on HOW trace state can be modified, including
-                // removing whole values, starting with the largest values, and preserving ordering.
-                // Rather than implementing these complex requirements, we take the lazy path of just
-                // truncating the whole thing.
-                this.traceState = value?.Length <= 513 ? value : null;
-            }
+            // The W3C spec allows vendors to truncate the trace state if it exceeds 513 characters,
+            // but it has very specific requirements on HOW trace state can be modified, including
+            // removing whole values, starting with the largest values, and preserving ordering.
+            // Rather than implementing these complex requirements, we take the lazy path of just
+            // truncating the whole thing.
+            this.traceState = value?.Length <= 513 ? value : null;
         }
+    }
 
-        /// <summary>
-        /// The Activity's Id value that is used to restore an Activity during replays.
-        /// </summary>
-        [DataMember]
-        public string? Id { get; set; }
+    /// <summary>
+    /// The Activity's Id value that is used to restore an Activity during replays.
+    /// </summary>
+    [DataMember]
+    public string? Id { get; set; }
 
-        /// <summary>
-        /// The Activity's SpanId value that is used to restore an Activity during replays.
-        /// </summary>
-        [DataMember]
-        public string? SpanId { get; set; }
+    /// <summary>
+    /// The Activity's SpanId value that is used to restore an Activity during replays.
+    /// </summary>
+    [DataMember]
+    public string? SpanId { get; set; }
 
-        /// <summary>
-        /// The Activity's start time value that is used to restore an Activity during replays.
-        /// </summary>
-        [DataMember]
-        public DateTimeOffset? ActivityStartTime { get; set; }
+    /// <summary>
+    /// The Activity's start time value that is used to restore an Activity during replays.
+    /// </summary>
+    [DataMember]
+    public DateTimeOffset? ActivityStartTime { get; set; }
 
-        internal DistributedTraceContext Clone()
+    internal DistributedTraceContext Clone()
+    {
+        return new DistributedTraceContext(this.TraceParent, this.TraceState)
         {
-            return new DistributedTraceContext(this.TraceParent, this.TraceState)
-            {
-                Id = Id,
-                SpanId = SpanId,
-                ActivityStartTime = ActivityStartTime
-            };
-        }
+            Id = Id,
+            SpanId = SpanId,
+            ActivityStartTime = ActivityStartTime
+        };
     }
 }

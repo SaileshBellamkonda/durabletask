@@ -11,24 +11,22 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
-namespace DurableTask.Core.Command
+namespace DurableTask.Core.Command;
+using System.Text.Json.Serialization;
+
+/// <summary>
+/// Defines a set of base properties for an orchestrator action.
+/// </summary>
+[JsonConverter(typeof(OrchestrationActionConverter))]
+public abstract class OrchestratorAction
 {
-    using System.Text.Json.Serialization;
+    /// <summary>
+    /// The task ID associated with this orchestrator action.
+    /// </summary>
+    public int Id { get; set; }
 
     /// <summary>
-    /// Defines a set of base properties for an orchestrator action.
+    /// The type of the orchestrator action.
     /// </summary>
-    [JsonConverter(typeof(OrchestrationActionConverter))]
-    public abstract class OrchestratorAction
-    {
-        /// <summary>
-        /// The task ID associated with this orchestrator action.
-        /// </summary>
-        public int Id { get; set; }
-
-        /// <summary>
-        /// The type of the orchestrator action.
-        /// </summary>
-        public abstract OrchestratorActionType OrchestratorActionType { get; }
-    }
+    public abstract OrchestratorActionType OrchestratorActionType { get; }
 }

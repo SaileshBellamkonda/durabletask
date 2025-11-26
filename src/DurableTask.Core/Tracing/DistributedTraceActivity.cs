@@ -15,22 +15,20 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 
-namespace DurableTask.Core.Tracing
+namespace DurableTask.Core.Tracing;
+/// <summary>
+/// Manage Activity for orchestration execution.
+/// </summary>
+internal class DistributedTraceActivity
 {
-    /// <summary>
-    /// Manage Activity for orchestration execution.
-    /// </summary>
-    internal class DistributedTraceActivity
-    {
-        private static readonly AsyncLocal<Activity> CurrentActivity = new AsyncLocal<Activity>();
+    private static readonly AsyncLocal<Activity> CurrentActivity = new AsyncLocal<Activity>();
 
-        /// <summary>
-        /// Share the Activity across an orchestration execution.
-        /// </summary>
-        internal static Activity Current
-        {
-            get { return CurrentActivity.Value; }
-            set { CurrentActivity.Value = value; }
-        }
+    /// <summary>
+    /// Share the Activity across an orchestration execution.
+    /// </summary>
+    internal static Activity Current
+    {
+        get { return CurrentActivity.Value; }
+        set { CurrentActivity.Value = value; }
     }
 }

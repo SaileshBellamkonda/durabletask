@@ -11,50 +11,48 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core.Logging
+namespace DurableTask.Core.Logging;
+using System;
+using Microsoft.Extensions.Logging;
+
+/// <summary>
+/// Extension methods for the <see cref="ILoggerFactory"/> class.
+/// </summary>
+public static class LoggingExtensions
 {
-    using System;
-    using Microsoft.Extensions.Logging;
+    /// <summary>
+    /// Writes an <see cref="ILogEvent"/> to the provider <see cref="ILogger"/> and 
+    /// </summary>
+    /// <param name="logger">The logger to write to.</param>
+    /// <param name="logEvent">The event to be logged.</param>
+    /// <param name="exception">Optional exception parameter for logging.</param>
+    public static void LogDurableEvent(this ILogger logger, ILogEvent logEvent, Exception exception = null)
+    {
+        if (logEvent == null)
+        {
+            throw new ArgumentNullException(nameof(logEvent));
+        }
+
+        logger?.Log(
+            logEvent.Level,
+            logEvent.EventId,
+            logEvent,
+            exception,
+            formatter: (s, e) => s.FormattedMessage);
+
+        if (logEvent is IEventSourceEvent eventSourceEvent)
+        {
+            StructuredEventSource.EnsureLogicalTraceActivityId();
+            eventSourceEvent.WriteEventSource();
+        }
+    }
 
     /// <summary>
-    /// Extension methods for the <see cref="ILoggerFactory"/> class.
+    /// Sets the trace activity ID for the current logical thread.
     /// </summary>
-    public static class LoggingExtensions
+    /// <param name="traceActivityId">The trace activity ID to set.</param>
+    public static void SetLogicalTraceActivityId(Guid traceActivityId)
     {
-        /// <summary>
-        /// Writes an <see cref="ILogEvent"/> to the provider <see cref="ILogger"/> and 
-        /// </summary>
-        /// <param name="logger">The logger to write to.</param>
-        /// <param name="logEvent">The event to be logged.</param>
-        /// <param name="exception">Optional exception parameter for logging.</param>
-        public static void LogDurableEvent(this ILogger logger, ILogEvent logEvent, Exception exception = null)
-        {
-            if (logEvent == null)
-            {
-                throw new ArgumentNullException(nameof(logEvent));
-            }
-
-            logger?.Log(
-                logEvent.Level,
-                logEvent.EventId,
-                logEvent,
-                exception,
-                formatter: (s, e) => s.FormattedMessage);
-
-            if (logEvent is IEventSourceEvent eventSourceEvent)
-            {
-                StructuredEventSource.EnsureLogicalTraceActivityId();
-                eventSourceEvent.WriteEventSource();
-            }
-        }
-
-        /// <summary>
-        /// Sets the trace activity ID for the current logical thread.
-        /// </summary>
-        /// <param name="traceActivityId">The trace activity ID to set.</param>
-        public static void SetLogicalTraceActivityId(Guid traceActivityId)
-        {
-            StructuredEventSource.SetLogicalTraceActivityId(traceActivityId);
-        }
+        StructuredEventSource.SetLogicalTraceActivityId(traceActivityId);
     }
 }

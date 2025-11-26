@@ -11,53 +11,51 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core.History
+namespace DurableTask.Core.History;
+using System;
+using System.Runtime.Serialization;
+
+/// <summary>
+/// A history event for a new timer creation
+/// </summary>
+[DataContract]
+public class TimerCreatedEvent : HistoryEvent
 {
-    using System;
-    using System.Runtime.Serialization;
+    // Private ctor for JSON deserialization (required by some storage providers and out-of-proc executors)
+    TimerCreatedEvent()
+        : base(-1)
+    {
+    }
 
     /// <summary>
-    /// A history event for a new timer creation
+    /// Creates a new <see cref="TimerCreatedEvent"/> with the supplied event ID
+    /// and <paramref name="fireAt"/> timestamp.
     /// </summary>
-    [DataContract]
-    public class TimerCreatedEvent : HistoryEvent
+    /// <param name="eventId">The ID of the timer event.</param>
+    /// <param name="fireAt">The time at which the timer should fire.</param>
+    public TimerCreatedEvent(int eventId, DateTime fireAt)
+        : base(eventId)
     {
-        // Private ctor for JSON deserialization (required by some storage providers and out-of-proc executors)
-        TimerCreatedEvent()
-            : base(-1)
-        {
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="TimerCreatedEvent"/> with the supplied event ID
-        /// and <paramref name="fireAt"/> timestamp.
-        /// </summary>
-        /// <param name="eventId">The ID of the timer event.</param>
-        /// <param name="fireAt">The time at which the timer should fire.</param>
-        public TimerCreatedEvent(int eventId, DateTime fireAt)
-            : base(eventId)
-        {
-            this.FireAt = fireAt;
-        }
-
-        /// <summary>
-        /// Creates a new TimerCreatedEvent with the supplied event id
-        /// </summary>
-        /// <param name="eventId"></param>
-        public TimerCreatedEvent(int eventId)
-            : base(eventId)
-        {
-        }
-
-        /// <summary>
-        /// Gets the event type
-        /// </summary>
-        public override EventType EventType => EventType.TimerCreated;
-
-        /// <summary>
-        /// Gets or sets the desired datetime to fire
-        /// </summary>
-        [DataMember]
-        public DateTime FireAt { get; set; }
+        this.FireAt = fireAt;
     }
+
+    /// <summary>
+    /// Creates a new TimerCreatedEvent with the supplied event id
+    /// </summary>
+    /// <param name="eventId"></param>
+    public TimerCreatedEvent(int eventId)
+        : base(eventId)
+    {
+    }
+
+    /// <summary>
+    /// Gets the event type
+    /// </summary>
+    public override EventType EventType => EventType.TimerCreated;
+
+    /// <summary>
+    /// Gets or sets the desired datetime to fire
+    /// </summary>
+    [DataMember]
+    public DateTime FireAt { get; set; }
 }

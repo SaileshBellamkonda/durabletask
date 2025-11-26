@@ -11,34 +11,32 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.AzureServiceFabric.Exceptions
+namespace DurableTask.AzureServiceFabric.Exceptions;
+using System;
+using System.Net;
+
+using DurableTask.AzureServiceFabric.Remote;
+
+
+/// <summary>
+/// The exception that is thrown by <see cref="RemoteOrchestrationServiceClient"/> when proxy service returns non successful message.
+/// </summary>
+public class RemoteServiceException : Exception
 {
-    using System;
-    using System.Net;
-
-    using DurableTask.AzureServiceFabric.Remote;
-
+    private HttpStatusCode statusCode;
 
     /// <summary>
-    /// The exception that is thrown by <see cref="RemoteOrchestrationServiceClient"/> when proxy service returns non successful message.
+    /// Creates an instance of <see cref="RemoteServiceException"/>.
     /// </summary>
-    public class RemoteServiceException : Exception
+    /// <param name="message">Exception message.</param>
+    /// <param name="statusCode">Http response message</param>
+    public RemoteServiceException(string message, HttpStatusCode statusCode) : base(message)
     {
-        private HttpStatusCode statusCode;
-
-        /// <summary>
-        /// Creates an instance of <see cref="RemoteServiceException"/>.
-        /// </summary>
-        /// <param name="message">Exception message.</param>
-        /// <param name="statusCode">Http response message</param>
-        public RemoteServiceException(string message, HttpStatusCode statusCode) : base(message)
-        {
-            this.statusCode = statusCode;
-        }
-
-        /// <summary>
-        /// Instace of <see cref="HttpStatusCode"/> sent by proxy service.
-        /// </summary>
-        public HttpStatusCode HttpStatusCode => this.statusCode;
+        this.statusCode = statusCode;
     }
+
+    /// <summary>
+    /// Instace of <see cref="HttpStatusCode"/> sent by proxy service.
+    /// </summary>
+    public HttpStatusCode HttpStatusCode => this.statusCode;
 }

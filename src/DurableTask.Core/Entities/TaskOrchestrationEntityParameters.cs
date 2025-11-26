@@ -11,38 +11,36 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
-namespace DurableTask.Core.Entities
+namespace DurableTask.Core.Entities;
+using System;
+using DurableTask.Core.Serializing;
+
+/// <summary>
+/// Settings that determine how a task orchestrator interacts with entities.
+/// </summary>
+public class TaskOrchestrationEntityParameters
 {
-    using System;
-    using DurableTask.Core.Serializing;
+    /// <summary>
+    /// The time window within which entity messages should be deduplicated and reordered.
+    /// This is zero for providers that already guarantee exactly-once and ordered delivery.
+    /// </summary>
+    public TimeSpan EntityMessageReorderWindow { get; set; }
 
     /// <summary>
-    /// Settings that determine how a task orchestrator interacts with entities.
+    /// Construct a <see cref="TaskOrchestrationEntityParameters"/> based on the given backend properties.
     /// </summary>
-    public class TaskOrchestrationEntityParameters
+    /// <param name="properties">The backend properties.</param>
+    /// <returns>The constructed object, or null if <paramref name="properties"/> is null.</returns>
+    public static TaskOrchestrationEntityParameters? FromEntityBackendProperties(EntityBackendProperties? properties)
     {
-        /// <summary>
-        /// The time window within which entity messages should be deduplicated and reordered.
-        /// This is zero for providers that already guarantee exactly-once and ordered delivery.
-        /// </summary>
-        public TimeSpan EntityMessageReorderWindow { get; set; }
-
-        /// <summary>
-        /// Construct a <see cref="TaskOrchestrationEntityParameters"/> based on the given backend properties.
-        /// </summary>
-        /// <param name="properties">The backend properties.</param>
-        /// <returns>The constructed object, or null if <paramref name="properties"/> is null.</returns>
-        public static TaskOrchestrationEntityParameters? FromEntityBackendProperties(EntityBackendProperties? properties)
+        if (properties == null)
         {
-            if (properties == null)
-            {
-                return null;
-            }
-
-            return new TaskOrchestrationEntityParameters()
-            {
-                EntityMessageReorderWindow = properties.EntityMessageReorderWindow,
-            };
+            return null;
         }
+
+        return new TaskOrchestrationEntityParameters()
+        {
+            EntityMessageReorderWindow = properties.EntityMessageReorderWindow,
+        };
     }
 }

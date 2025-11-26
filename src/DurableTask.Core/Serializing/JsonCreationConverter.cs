@@ -11,58 +11,56 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core.Serializing
+namespace DurableTask.Core.Serializing;
+using System;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+
+/// <summary>
+///     Helper class for supporting deserialization from JSON into a custom class hierarchy
+/// </summary>
+internal abstract class JsonCreationConverter<T> : System.Text.Json.Serialization.JsonConverter<T> where T : class
 {
-    using System;
-    using System.Text.Json;
-    using System.Text.Json.Nodes;
+    public override bool CanConvert(Type objectType)
+    {
+        return typeof(T).IsAssignableFrom(objectType);
+    }
+
+    public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.StartObject)
+        {
+            return null;
+        }
+
+        // Parse the JSON into a JsonObject for inspection
+        JsonObject jsonObject = JsonNode.Parse(ref reader)?.AsObject();
+        if (jsonObject == null)
+        {
+            return null;
+        }
+
+        // Create target object based on JsonObject properties
+        T target = CreateObject(typeToConvert, jsonObject);
+
+        // Deserialize the properties into the target object
+        JsonSerializer.Deserialize(jsonObject.ToJsonString(), target.GetType(), options);
+        
+        // Populate target with values from jsonObject
+        string jsonString = jsonObject.ToJsonString();
+        target = JsonSerializer.Deserialize(jsonString, target.GetType(), options) as T;
+
+        return target;
+    }
+
+    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
+    {
+        // Write using default serialization
+        JsonSerializer.Serialize(writer, value, value.GetType(), options);
+    }
 
     /// <summary>
-    ///     Helper class for supporting deserialization from JSON into a custom class hierarchy
+    ///     Create an instance of objectType, based properties in the JSON object
     /// </summary>
-    internal abstract class JsonCreationConverter<T> : System.Text.Json.Serialization.JsonConverter<T> where T : class
-    {
-        public override bool CanConvert(Type objectType)
-        {
-            return typeof(T).IsAssignableFrom(objectType);
-        }
-
-        public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        {
-            if (reader.TokenType != JsonTokenType.StartObject)
-            {
-                return null;
-            }
-
-            // Parse the JSON into a JsonObject for inspection
-            JsonObject jsonObject = JsonNode.Parse(ref reader)?.AsObject();
-            if (jsonObject == null)
-            {
-                return null;
-            }
-
-            // Create target object based on JsonObject properties
-            T target = CreateObject(typeToConvert, jsonObject);
-
-            // Deserialize the properties into the target object
-            JsonSerializer.Deserialize(jsonObject.ToJsonString(), target.GetType(), options);
-            
-            // Populate target with values from jsonObject
-            string jsonString = jsonObject.ToJsonString();
-            target = JsonSerializer.Deserialize(jsonString, target.GetType(), options) as T;
-
-            return target;
-        }
-
-        public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
-        {
-            // Write using default serialization
-            JsonSerializer.Serialize(writer, value, value.GetType(), options);
-        }
-
-        /// <summary>
-        ///     Create an instance of objectType, based properties in the JSON object
-        /// </summary>
-        protected abstract T CreateObject(Type objectType, JsonObject jsonObject);
-    }
+    protected abstract T CreateObject(Type objectType, JsonObject jsonObject);
 }

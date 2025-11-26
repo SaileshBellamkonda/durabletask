@@ -11,21 +11,19 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core.Tracing
+namespace DurableTask.Core.Tracing;
+internal class TraceActivityConstants
 {
-    internal class TraceActivityConstants
-    {
-        public const string Client = "client";
-        public const string Orchestration = "orchestration";
-        public const string Activity = "activity";
-        public const string Event = "event";
-        public const string Timer = "timer";
-        public const string Entity = "entity";
+    public const string Client = "client";
+    public const string Orchestration = "orchestration";
+    public const string Activity = "activity";
+    public const string Event = "event";
+    public const string Timer = "timer";
+    public const string Entity = "entity";
 
-        public const string CreateOrchestration = "create_orchestration";
-        public const string OrchestrationEvent = "orchestration_event";
+    public const string CreateOrchestration = "create_orchestration";
+    public const string OrchestrationEvent = "orchestration_event";
 
-        public const string CallEntity = "call_entity";
-        public const string SignalEntity = "signal_entity";
-    }
+    public const string CallEntity = "call_entity";
+    public const string SignalEntity = "signal_entity";
 }

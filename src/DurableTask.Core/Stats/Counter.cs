@@ -11,62 +11,60 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core.Stats
+namespace DurableTask.Core.Stats;
+using System.Threading;
+
+/// <summary>
+/// Simple counter class
+/// </summary>
+public class Counter
 {
-    using System.Threading;
+    long counterValue;
 
     /// <summary>
-    /// Simple counter class
+    /// Gets the current counter value
     /// </summary>
-    public class Counter
+    public long Value => this.counterValue;
+
+    /// <summary>
+    /// Increments the counter by 1
+    /// </summary>
+    public void Increment()
     {
-        long counterValue;
+        Interlocked.Increment(ref this.counterValue);
+    }
 
-        /// <summary>
-        /// Gets the current counter value
-        /// </summary>
-        public long Value => this.counterValue;
+    /// <summary>
+    /// Increments the counter by the supplied value
+    /// </summary>
+    /// <param name="value">The value to increment the counter by</param>
+    public void Increment(long value)
+    {
+        Interlocked.Add(ref this.counterValue, value);
+    }
 
-        /// <summary>
-        /// Increments the counter by 1
-        /// </summary>
-        public void Increment()
-        {
-            Interlocked.Increment(ref this.counterValue);
-        }
+    /// <summary>
+    /// Decrements the counter by 1
+    /// </summary>
+    public void Decrement()
+    {
+        Interlocked.Decrement(ref this.counterValue);
+    }
 
-        /// <summary>
-        /// Increments the counter by the supplied value
-        /// </summary>
-        /// <param name="value">The value to increment the counter by</param>
-        public void Increment(long value)
-        {
-            Interlocked.Add(ref this.counterValue, value);
-        }
+    /// <summary>
+    /// Resets the counter back to zero
+    /// </summary>
+    /// <returns>The value of the counter before it was reset</returns>
+    public long Reset()
+    {
+        return Interlocked.Exchange(ref this.counterValue, 0);
+    }
 
-        /// <summary>
-        /// Decrements the counter by 1
-        /// </summary>
-        public void Decrement()
-        {
-            Interlocked.Decrement(ref this.counterValue);
-        }
-
-        /// <summary>
-        /// Resets the counter back to zero
-        /// </summary>
-        /// <returns>The value of the counter before it was reset</returns>
-        public long Reset()
-        {
-            return Interlocked.Exchange(ref this.counterValue, 0);
-        }
-
-        /// <summary>
-        /// Returns a string that represents the Counter.
-        /// </summary>
-        public override string ToString()
-        {
-            return this.counterValue.ToString();
-        }
+    /// <summary>
+    /// Returns a string that represents the Counter.
+    /// </summary>
+    public override string ToString()
+    {
+        return this.counterValue.ToString();
     }
 }

@@ -13,50 +13,48 @@
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
 using System;
 
-namespace DurableTask.Core.Entities.OperationFormat
+namespace DurableTask.Core.Entities.OperationFormat;
+/// <summary>
+/// A response message sent by an entity to a caller after it executes an operation.
+/// </summary>
+public class OperationResult
 {
+    // NOTE: Actions must be serializable by a variety of different serializer types to support out-of-process execution.
+    //       To ensure maximum compatibility, all properties should be public and settable by default.
+
     /// <summary>
-    /// A response message sent by an entity to a caller after it executes an operation.
+    /// The serialized result returned by the operation. Can be null, if the operation returned no result.
+    /// May contain error details, such as a serialized exception, if <see cref="IsError"/> is true.
     /// </summary>
-    public class OperationResult
-    {
-        // NOTE: Actions must be serializable by a variety of different serializer types to support out-of-process execution.
-        //       To ensure maximum compatibility, all properties should be public and settable by default.
+    public string? Result { get; set; }
 
-        /// <summary>
-        /// The serialized result returned by the operation. Can be null, if the operation returned no result.
-        /// May contain error details, such as a serialized exception, if <see cref="IsError"/> is true.
-        /// </summary>
-        public string? Result { get; set; }
+    /// <summary>
+    /// Whether this operation completed successfully.
+    /// </summary>
+    public bool IsError
+        => this.ErrorMessage != null || this.FailureDetails != null;
 
-        /// <summary>
-        /// Whether this operation completed successfully.
-        /// </summary>
-        public bool IsError
-            => this.ErrorMessage != null || this.FailureDetails != null;
+    /// <summary>
+    /// If non-null, this string indicates that this operation did not successfully complete. 
+    /// The content and interpretation varies depending on the SDK used. For newer SDKs,
+    /// we rely on the <see cref="FailureDetails"/> instead.
+    /// </summary>
+    public string? ErrorMessage { get; set; }
 
-        /// <summary>
-        /// If non-null, this string indicates that this operation did not successfully complete. 
-        /// The content and interpretation varies depending on the SDK used. For newer SDKs,
-        /// we rely on the <see cref="FailureDetails"/> instead.
-        /// </summary>
-        public string? ErrorMessage { get; set; }
+    /// <summary>
+    /// A structured language-independent representation of the error. Whether this field is present
+    /// depends on which SDK is used, and on configuration settings. For newer SDKs, we use
+    /// this field exclusively when collecting error information.
+    /// </summary>
+    public FailureDetails? FailureDetails { get; set; }
 
-        /// <summary>
-        /// A structured language-independent representation of the error. Whether this field is present
-        /// depends on which SDK is used, and on configuration settings. For newer SDKs, we use
-        /// this field exclusively when collecting error information.
-        /// </summary>
-        public FailureDetails? FailureDetails { get; set; }
+    /// <summary>
+    /// The start time of the operation.
+    /// </summary>
+    public DateTime? StartTimeUtc { get; set; }
 
-        /// <summary>
-        /// The start time of the operation.
-        /// </summary>
-        public DateTime? StartTimeUtc { get; set; }
-
-        /// <summary>
-        /// The completion time of the operation.
-        /// </summary>
-        public DateTime? EndTimeUtc { get; set; }
-    }
+    /// <summary>
+    /// The completion time of the operation.
+    /// </summary>
+    public DateTime? EndTimeUtc { get; set; }
 }

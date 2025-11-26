@@ -11,37 +11,35 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
-namespace DurableTask.Core.Entities.OperationFormat
+namespace DurableTask.Core.Entities.OperationFormat;
+using DurableTask.Core.Tracing;
+using System;
+
+/// <summary>
+/// A request message sent to an entity when calling or signaling the entity.
+/// </summary>
+public class OperationRequest
 {
-    using DurableTask.Core.Tracing;
-    using System;
+    // NOTE: Actions must be serializable by a variety of different serializer types to support out-of-process execution.
+    //       To ensure maximum compatibility, all properties should be public and settable by default.
 
     /// <summary>
-    /// A request message sent to an entity when calling or signaling the entity.
+    /// The name of the operation.
     /// </summary>
-    public class OperationRequest
-    {
-        // NOTE: Actions must be serializable by a variety of different serializer types to support out-of-process execution.
-        //       To ensure maximum compatibility, all properties should be public and settable by default.
+    public string? Operation { get; set; }
 
-        /// <summary>
-        /// The name of the operation.
-        /// </summary>
-        public string? Operation { get; set; }
+    /// <summary>
+    /// The unique GUID of the operation.
+    /// </summary>
+    public Guid Id { get; set; }
 
-        /// <summary>
-        /// The unique GUID of the operation.
-        /// </summary>
-        public Guid Id { get; set; }
+    /// <summary>
+    /// The input for the operation. Can be null if no input was given.
+    /// </summary>
+    public string? Input { get; set; }
 
-        /// <summary>
-        /// The input for the operation. Can be null if no input was given.
-        /// </summary>
-        public string? Input { get; set; }
-
-        /// <summary>
-        /// The trace context for the operation, if any.
-        /// </summary>
-        public DistributedTraceContext? TraceContext { get; set; }
-    }
+    /// <summary>
+    /// The trace context for the operation, if any.
+    /// </summary>
+    public DistributedTraceContext? TraceContext { get; set; }
 }

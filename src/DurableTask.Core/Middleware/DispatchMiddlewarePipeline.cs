@@ -11,39 +11,37 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core.Middleware
+namespace DurableTask.Core.Middleware;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+internal class DispatchMiddlewarePipeline
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
+    readonly IList<Func<DispatchMiddlewareDelegate, DispatchMiddlewareDelegate>> components =
+        new List<Func<DispatchMiddlewareDelegate, DispatchMiddlewareDelegate>>();
 
-    internal class DispatchMiddlewarePipeline
+    public Task RunAsync(DispatchMiddlewareContext context, DispatchMiddlewareDelegate handler)
     {
-        readonly IList<Func<DispatchMiddlewareDelegate, DispatchMiddlewareDelegate>> components =
-            new List<Func<DispatchMiddlewareDelegate, DispatchMiddlewareDelegate>>();
-
-        public Task RunAsync(DispatchMiddlewareContext context, DispatchMiddlewareDelegate handler)
+        // Build the delegate chain
+        foreach (Func<DispatchMiddlewareDelegate, DispatchMiddlewareDelegate> component in this.components.Reverse())
         {
-            // Build the delegate chain
-            foreach (Func<DispatchMiddlewareDelegate, DispatchMiddlewareDelegate> component in this.components.Reverse())
-            {
-                handler = component(handler);
-            }
-
-            return handler(context);
+            handler = component(handler);
         }
 
-        public void Add(Func<DispatchMiddlewareContext, Func<Task>, Task> middleware)
+        return handler(context);
+    }
+
+    public void Add(Func<DispatchMiddlewareContext, Func<Task>, Task> middleware)
+    {
+        this.components.Add(next =>
         {
-            this.components.Add(next =>
+            return context =>
             {
-                return context =>
-                {
-                    Task SimpleNext() => next(context);
-                    return middleware(context, SimpleNext);
-                };
-            });
-        }
+                Task SimpleNext() => next(context);
+                return middleware(context, SimpleNext);
+            };
+        });
     }
 }

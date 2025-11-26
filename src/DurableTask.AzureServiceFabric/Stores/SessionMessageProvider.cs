@@ -11,39 +11,37 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.AzureServiceFabric.Stores
+namespace DurableTask.AzureServiceFabric.Stores;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.ServiceFabric.Data;
+
+class SessionMessageProvider : MessageProviderBase<Guid, TaskMessageItem>
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Microsoft.ServiceFabric.Data;
-
-    class SessionMessageProvider : MessageProviderBase<Guid, TaskMessageItem>
+    public SessionMessageProvider(IReliableStateManager stateManager, string storeName, CancellationToken token)
+        : base(stateManager, storeName, token)
     {
-        public SessionMessageProvider(IReliableStateManager stateManager, string storeName, CancellationToken token)
-            : base(stateManager, storeName, token)
-        {
-        }
+    }
 
-        protected override void AddItemInMemory(Guid key, TaskMessageItem value)
-        {
-            throw new NotSupportedException();
-        }
+    protected override void AddItemInMemory(Guid key, TaskMessageItem value)
+    {
+        throw new NotSupportedException();
+    }
 
-        public override Task StartAsync()
-        {
-            return InitializeStore();
-        }
+    public override Task StartAsync()
+    {
+        return InitializeStore();
+    }
 
-        public async Task<List<Message<Guid, TaskMessageItem>>> ReceiveBatchAsync()
+    public async Task<List<Message<Guid, TaskMessageItem>>> ReceiveBatchAsync()
+    {
+        List<Message<Guid, TaskMessageItem>> result = new List<Message<Guid, TaskMessageItem>>();
+        if (!IsStopped())
         {
-            List<Message<Guid, TaskMessageItem>> result = new List<Message<Guid, TaskMessageItem>>();
-            if (!IsStopped())
-            {
-                await this.EnumerateItems(kvp => result.Add(new Message<Guid, TaskMessageItem>(kvp.Key, kvp.Value)));
-            }
-            return result;
+            await this.EnumerateItems(kvp => result.Add(new Message<Guid, TaskMessageItem>(kvp.Key, kvp.Value)));
         }
+        return result;
     }
 }

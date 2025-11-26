@@ -11,57 +11,55 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
-namespace DurableTask.Core.Entities.OperationFormat
+namespace DurableTask.Core.Entities.OperationFormat;
+using DurableTask.Core.Tracing;
+using System;
+using System.Collections.Generic;
+
+/// <summary>
+/// Entity operation action for creating sub-orchestrations.
+/// </summary>
+public class StartNewOrchestrationOperationAction : OperationAction
 {
-    using DurableTask.Core.Tracing;
-    using System;
-    using System.Collections.Generic;
+     /// <inheritdoc/>
+    public override OperationActionType OperationActionType => OperationActionType.StartNewOrchestration;
+
+    // NOTE: Actions must be serializable by a variety of different serializer types to support out-of-process execution.
+    //       To ensure maximum compatibility, all properties should be public and settable by default.
 
     /// <summary>
-    /// Entity operation action for creating sub-orchestrations.
+    /// Gets or sets the name of the sub-orchestrator to start.
     /// </summary>
-    public class StartNewOrchestrationOperationAction : OperationAction
-    {
-         /// <inheritdoc/>
-        public override OperationActionType OperationActionType => OperationActionType.StartNewOrchestration;
+    public string? Name { get; set; }
 
-        // NOTE: Actions must be serializable by a variety of different serializer types to support out-of-process execution.
-        //       To ensure maximum compatibility, all properties should be public and settable by default.
+    /// <summary>
+    /// Gets or sets the version of the sub-orchestrator to start.
+    /// </summary>
+    public string? Version { get; set; }
 
-        /// <summary>
-        /// Gets or sets the name of the sub-orchestrator to start.
-        /// </summary>
-        public string? Name { get; set; }
+    /// <summary>
+    /// Gets or sets the instance ID of the created sub-orchestration.
+    /// </summary>
+    public string? InstanceId { get; set; }
 
-        /// <summary>
-        /// Gets or sets the version of the sub-orchestrator to start.
-        /// </summary>
-        public string? Version { get; set; }
+    /// <summary>
+    /// Gets or sets the input of the sub-orchestration.
+    /// </summary>
+    public string? Input { get; set; }
 
-        /// <summary>
-        /// Gets or sets the instance ID of the created sub-orchestration.
-        /// </summary>
-        public string? InstanceId { get; set; }
+    /// <summary>
+    /// Gets or sets when to start the orchestration, or null if the orchestration should be started immediately.
+    /// </summary>
+    public DateTime? ScheduledStartTime { get; set; }
 
-        /// <summary>
-        /// Gets or sets the input of the sub-orchestration.
-        /// </summary>
-        public string? Input { get; set; }
+    /// <summary>
+    /// The time of the new orchestration request creation.
+    /// </summary>
+    public DateTimeOffset? RequestTime { get; set; }
 
-        /// <summary>
-        /// Gets or sets when to start the orchestration, or null if the orchestration should be started immediately.
-        /// </summary>
-        public DateTime? ScheduledStartTime { get; set; }
+    /// <summary>
+    /// The parent trace context for the operation, if any.
+    /// </summary>
+    public DistributedTraceContext? ParentTraceContext { get; set; }
 
-        /// <summary>
-        /// The time of the new orchestration request creation.
-        /// </summary>
-        public DateTimeOffset? RequestTime { get; set; }
-
-        /// <summary>
-        /// The parent trace context for the operation, if any.
-        /// </summary>
-        public DistributedTraceContext? ParentTraceContext { get; set; }
-
-    }
 }

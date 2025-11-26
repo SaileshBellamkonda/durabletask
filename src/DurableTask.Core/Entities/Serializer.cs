@@ -11,25 +11,23 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
-namespace DurableTask.Core.Entities
-{
-    using System;
-    using System.Text.Json;
-    using DurableTask.Core.Serialization;
+namespace DurableTask.Core.Entities;
+using System;
+using System.Text.Json;
+using DurableTask.Core.Serialization;
 
-    internal static class Serializer
+internal static class Serializer
+{
+    /// <summary>
+    /// This serializer options is used exclusively for internally defined data structures and cannot be customized by user.
+    /// This is intentional, to avoid problems caused by our inability to control the exact format.
+    /// For example, including typenames can cause compatibility problems if the type name is later changed.
+    /// </summary>
+    public static readonly Lazy<JsonSerializerOptions> InternalSerializerOptions = new Lazy<JsonSerializerOptions>(() =>
     {
-        /// <summary>
-        /// This serializer options is used exclusively for internally defined data structures and cannot be customized by user.
-        /// This is intentional, to avoid problems caused by our inability to control the exact format.
-        /// For example, including typenames can cause compatibility problems if the type name is later changed.
-        /// </summary>
-        public static readonly Lazy<JsonSerializerOptions> InternalSerializerOptions = new Lazy<JsonSerializerOptions>(() =>
-        {
-            // Create options based on JsonSettings.Default but ensure TypeNameHandling is disabled
-            var options = new JsonSerializerOptions(JsonSettings.Default);
-            // System.Text.Json doesn't include type names by default, so no special configuration needed
-            return options;
-        });
-    }
+        // Create options based on JsonSettings.Default but ensure TypeNameHandling is disabled
+        var options = new JsonSerializerOptions(JsonSettings.Default);
+        // System.Text.Json doesn't include type names by default, so no special configuration needed
+        return options;
+    });
 }

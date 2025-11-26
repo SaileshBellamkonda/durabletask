@@ -11,19 +11,17 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
-namespace DurableTask.Core.Entities.OperationFormat
-{
-    using System.Text.Json.Serialization;
+namespace DurableTask.Core.Entities.OperationFormat;
+using System.Text.Json.Serialization;
 
+/// <summary>
+/// Defines a set of base properties for an operator action.
+/// </summary>
+[JsonConverter(typeof(OperationActionConverter))]
+public abstract class OperationAction
+{
     /// <summary>
-    /// Defines a set of base properties for an operator action.
+    /// The type of the orchestrator action.
     /// </summary>
-    [JsonConverter(typeof(OperationActionConverter))]
-    public abstract class OperationAction
-    {
-        /// <summary>
-        /// The type of the orchestrator action.
-        /// </summary>
-        public abstract OperationActionType OperationActionType { get; }
-    }
+    public abstract OperationActionType OperationActionType { get; }
 }

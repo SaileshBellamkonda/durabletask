@@ -11,23 +11,21 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.AzureServiceFabric
+namespace DurableTask.AzureServiceFabric;
+using System;
+using System.Runtime.Serialization;
+using DurableTask.Core;
+
+[DataContract]
+sealed class TaskMessageItem : IExtensibleDataObject
 {
-    using System;
-    using System.Runtime.Serialization;
-    using DurableTask.Core;
-
-    [DataContract]
-    sealed class TaskMessageItem : IExtensibleDataObject
+    public TaskMessageItem(TaskMessage taskMessage)
     {
-        public TaskMessageItem(TaskMessage taskMessage)
-        {
-            this.TaskMessage = taskMessage ?? throw new ArgumentNullException(nameof(taskMessage));
-        }
-
-        [DataMember]
-        public TaskMessage TaskMessage { get; private set; }
-
-        public ExtensionDataObject ExtensionData { get; set; }
+        this.TaskMessage = taskMessage ?? throw new ArgumentNullException(nameof(taskMessage));
     }
+
+    [DataMember]
+    public TaskMessage TaskMessage { get; private set; }
+
+    public ExtensionDataObject ExtensionData { get; set; }
 }

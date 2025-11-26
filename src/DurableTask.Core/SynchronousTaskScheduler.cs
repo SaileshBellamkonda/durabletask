@@ -11,31 +11,29 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core
+namespace DurableTask.Core;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+internal class SynchronousTaskScheduler : TaskScheduler
 {
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
+    public override int MaximumConcurrencyLevel => 1;
 
-    internal class SynchronousTaskScheduler : TaskScheduler
+    protected override void QueueTask(Task task)
     {
-        public override int MaximumConcurrencyLevel => 1;
+        TryExecuteTask(task);
+    }
 
-        protected override void QueueTask(Task task)
-        {
-            TryExecuteTask(task);
-        }
+    protected override bool TryExecuteTaskInline(
+        Task task,
+        bool taskWasPreviouslyQueued)
+    {
+        return TryExecuteTask(task);
+    }
 
-        protected override bool TryExecuteTaskInline(
-            Task task,
-            bool taskWasPreviouslyQueued)
-        {
-            return TryExecuteTask(task);
-        }
-
-        protected override IEnumerable<Task> GetScheduledTasks()
-        {
-            return Enumerable.Empty<Task>();
-        }
+    protected override IEnumerable<Task> GetScheduledTasks()
+    {
+        return Enumerable.Empty<Task>();
     }
 }

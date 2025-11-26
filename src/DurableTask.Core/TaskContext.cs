@@ -11,61 +11,59 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
-namespace DurableTask.Core
+namespace DurableTask.Core;
+/// <summary>
+/// Task context
+/// </summary>
+public class TaskContext
 {
     /// <summary>
-    /// Task context
+    /// Creates a new TaskContext with the supplied OrchestrationInstance
     /// </summary>
-    public class TaskContext
+    /// <param name="orchestrationInstance"></param>
+    public TaskContext(OrchestrationInstance orchestrationInstance)
+        : this(orchestrationInstance, string.Empty, null, -1)
     {
-        /// <summary>
-        /// Creates a new TaskContext with the supplied OrchestrationInstance
-        /// </summary>
-        /// <param name="orchestrationInstance"></param>
-        public TaskContext(OrchestrationInstance orchestrationInstance)
-            : this(orchestrationInstance, string.Empty, null, -1)
-        {
-        }
-
-        /// <summary>
-        /// Creates a new TaskContext with the supplied OrchestrationInstance and taskId
-        /// </summary>
-        public TaskContext(OrchestrationInstance orchestrationInstance, string name, string? version, int taskId)
-        {
-            OrchestrationInstance = orchestrationInstance;
-            Name = name;
-            Version = version;
-            TaskId = taskId;
-        }
-
-        /// <summary>
-        /// Gets the OrchestrationInstance for this task context
-        /// </summary>
-        public OrchestrationInstance OrchestrationInstance { get; private set; }
-
-        /// <summary>
-        /// Gets the name of the task
-        /// </summary>
-        public string Name { get; }
-
-        /// <summary>
-        /// Gets the version of the task, if any.
-        /// </summary>
-        public string? Version { get; }
-
-        /// <summary>
-        /// Gets the ID of the task, which is a sequential number unique to the orchestration instance.
-        /// </summary>
-        public int TaskId { get; }
-
-        /// <summary>
-        /// Gets or sets a value indicating how to propagate unhandled exception metadata.
-        /// </summary>
-        internal ErrorPropagationMode ErrorPropagationMode { get; set; }
-
-        /// <summary>
-        /// Gets or sets the properties of exceptions with the provider.
-        /// </summary>
-        public IExceptionPropertiesProvider? ExceptionPropertiesProvider { get; set; }
     }
+
+    /// <summary>
+    /// Creates a new TaskContext with the supplied OrchestrationInstance and taskId
+    /// </summary>
+    public TaskContext(OrchestrationInstance orchestrationInstance, string name, string? version, int taskId)
+    {
+        OrchestrationInstance = orchestrationInstance;
+        Name = name;
+        Version = version;
+        TaskId = taskId;
+    }
+
+    /// <summary>
+    /// Gets the OrchestrationInstance for this task context
+    /// </summary>
+    public OrchestrationInstance OrchestrationInstance { get; private set; }
+
+    /// <summary>
+    /// Gets the name of the task
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    /// Gets the version of the task, if any.
+    /// </summary>
+    public string? Version { get; }
+
+    /// <summary>
+    /// Gets the ID of the task, which is a sequential number unique to the orchestration instance.
+    /// </summary>
+    public int TaskId { get; }
+
+    /// <summary>
+    /// Gets or sets a value indicating how to propagate unhandled exception metadata.
+    /// </summary>
+    internal ErrorPropagationMode ErrorPropagationMode { get; set; }
+
+    /// <summary>
+    /// Gets or sets the properties of exceptions with the provider.
+    /// </summary>
+    public IExceptionPropertiesProvider? ExceptionPropertiesProvider { get; set; }
 }

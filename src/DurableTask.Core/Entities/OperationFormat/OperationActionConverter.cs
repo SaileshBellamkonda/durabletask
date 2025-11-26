@@ -10,31 +10,29 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
-namespace DurableTask.Core.Entities.OperationFormat
+namespace DurableTask.Core.Entities.OperationFormat;
+using System;
+using System.Text.Json.Nodes;
+using DurableTask.Core.Serializing;
+
+internal class OperationActionConverter : JsonCreationConverter<OperationAction>
 {
-    using System;
-    using System.Text.Json.Nodes;
-    using DurableTask.Core.Serializing;
-
-    internal class OperationActionConverter : JsonCreationConverter<OperationAction>
+    protected override OperationAction CreateObject(Type objectType, JsonObject jsonObject)
     {
-        protected override OperationAction CreateObject(Type objectType, JsonObject jsonObject)
+        if (jsonObject.TryGetPropertyValue("OperationActionType", out JsonNode actionTypeNode))
         {
-            if (jsonObject.TryGetPropertyValue("OperationActionType", out JsonNode actionTypeNode))
+            var type = (OperationActionType)int.Parse(actionTypeNode.ToString());
+            switch (type)
             {
-                var type = (OperationActionType)int.Parse(actionTypeNode.ToString());
-                switch (type)
-                {
-                    case OperationActionType.SendSignal:
-                        return new SendSignalOperationAction();
-                    case OperationActionType.StartNewOrchestration:
-                        return new StartNewOrchestrationOperationAction();
-                    default:
-                        throw new NotSupportedException("Unrecognized action type.");
-                }
+                case OperationActionType.SendSignal:
+                    return new SendSignalOperationAction();
+                case OperationActionType.StartNewOrchestration:
+                    return new StartNewOrchestrationOperationAction();
+                default:
+                    throw new NotSupportedException("Unrecognized action type.");
             }
-
-            throw new NotSupportedException("Action Type not provided.");
         }
+
+        throw new NotSupportedException("Action Type not provided.");
     }
 }

@@ -11,39 +11,37 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
-namespace DurableTask.Core.Entities.OperationFormat
+namespace DurableTask.Core.Entities.OperationFormat;
+using System.Collections.Generic;
+
+/// <summary>
+/// The results of executing a batch of operations on the entity out of process.
+/// </summary>
+public class EntityBatchResult
 {
-    using System.Collections.Generic;
+    // NOTE: Actions must be serializable by a variety of different serializer types to support out-of-process execution.
+    //       To ensure maximum compatibility, all properties should be public and settable by default.
 
     /// <summary>
-    /// The results of executing a batch of operations on the entity out of process.
+    /// The results of executing the operations in the batch. If there were (non-application-level) errors, the length of this list may
+    /// be shorter than the number of requests. In that case, <see cref="FailureDetails"/> contains the reason why not all requests 
+    /// were processed.
     /// </summary>
-    public class EntityBatchResult
-    {
-        // NOTE: Actions must be serializable by a variety of different serializer types to support out-of-process execution.
-        //       To ensure maximum compatibility, all properties should be public and settable by default.
+    public List<OperationResult>? Results { get; set; }
 
-        /// <summary>
-        /// The results of executing the operations in the batch. If there were (non-application-level) errors, the length of this list may
-        /// be shorter than the number of requests. In that case, <see cref="FailureDetails"/> contains the reason why not all requests 
-        /// were processed.
-        /// </summary>
-        public List<OperationResult>? Results { get; set; }
+    /// <summary>
+    /// The list of actions (outgoing messages) performed while executing the operations in the batch. Can be empty.
+    /// </summary>
+    public List<OperationAction>? Actions { get; set; }
 
-        /// <summary>
-        /// The list of actions (outgoing messages) performed while executing the operations in the batch. Can be empty.
-        /// </summary>
-        public List<OperationAction>? Actions { get; set; }
+    /// <summary>
+    /// The state of the entity after executing the batch,
+    /// or null if the entity has no state (e.g. if it has been deleted).
+    /// </summary>
+    public string? EntityState { get; set; }
 
-        /// <summary>
-        /// The state of the entity after executing the batch,
-        /// or null if the entity has no state (e.g. if it has been deleted).
-        /// </summary>
-        public string? EntityState { get; set; }
-
-        /// <summary>
-        /// Contains the failure details, if there was a failure to process all requests (fewer results were returned than requests) 
-        /// </summary>
-        public FailureDetails? FailureDetails { get; set; }
-    }
+    /// <summary>
+    /// Contains the failure details, if there was a failure to process all requests (fewer results were returned than requests) 
+    /// </summary>
+    public FailureDetails? FailureDetails { get; set; }
 }

@@ -11,48 +11,46 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 // #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
-namespace DurableTask.Core.Entities
+namespace DurableTask.Core.Entities;
+using System.Runtime.Serialization;
+
+/// <summary>
+/// Information about the current status of an entity. Excludes potentially large data
+/// (such as the entity state, or the contents of the queue) so it can always be read with low latency.
+/// </summary>
+[DataContract]
+public class EntityStatus
 {
-    using System.Runtime.Serialization;
+    /// <summary>
+    /// The JSON property name for the entityExists property.  
+    /// </summary>
+    const string EntityExistsProperyName = "entityExists";
 
     /// <summary>
-    /// Information about the current status of an entity. Excludes potentially large data
-    /// (such as the entity state, or the contents of the queue) so it can always be read with low latency.
+    /// A fast shortcut for checking whether an entity exists, looking at the serialized json string directly. Used by queries.
     /// </summary>
-    [DataContract]
-    public class EntityStatus
+    /// <param name="serializedJson"></param>
+    /// <returns></returns>
+    public static bool TestEntityExists(string serializedJson)
     {
-        /// <summary>
-        /// The JSON property name for the entityExists property.  
-        /// </summary>
-        const string EntityExistsProperyName = "entityExists";
-
-        /// <summary>
-        /// A fast shortcut for checking whether an entity exists, looking at the serialized json string directly. Used by queries.
-        /// </summary>
-        /// <param name="serializedJson"></param>
-        /// <returns></returns>
-        public static bool TestEntityExists(string serializedJson)
-        {
-            return serializedJson.Contains(EntityExistsProperyName);
-        }
-
-        /// <summary>
-        /// Whether this entity currently has a user-defined state or not.
-        /// </summary>
-        [DataMember(Name = EntityExistsProperyName, EmitDefaultValue = false)]
-        public bool EntityExists { get; set; }
-
-        /// <summary>
-        /// The size of the queue, i.e. the number of operations that are waiting for the current operation to complete.
-        /// </summary>
-        [DataMember(Name = "queueSize", EmitDefaultValue = false)]
-        public int BacklogQueueSize { get; set; }
-
-        /// <summary>
-        /// The instance id of the orchestration that currently holds the lock of this entity.
-        /// </summary>
-        [DataMember(Name = "lockedBy", EmitDefaultValue = false)]
-        public string? LockedBy { get; set; }
+        return serializedJson.Contains(EntityExistsProperyName);
     }
+
+    /// <summary>
+    /// Whether this entity currently has a user-defined state or not.
+    /// </summary>
+    [DataMember(Name = EntityExistsProperyName, EmitDefaultValue = false)]
+    public bool EntityExists { get; set; }
+
+    /// <summary>
+    /// The size of the queue, i.e. the number of operations that are waiting for the current operation to complete.
+    /// </summary>
+    [DataMember(Name = "queueSize", EmitDefaultValue = false)]
+    public int BacklogQueueSize { get; set; }
+
+    /// <summary>
+    /// The instance id of the orchestration that currently holds the lock of this entity.
+    /// </summary>
+    [DataMember(Name = "lockedBy", EmitDefaultValue = false)]
+    public string? LockedBy { get; set; }
 }

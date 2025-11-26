@@ -11,36 +11,34 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core.History
+namespace DurableTask.Core.History;
+using System.Runtime.Serialization;
+
+/// <summary>
+/// A history event for orchestration suspension.
+/// </summary>
+[DataContract]
+public class ExecutionSuspendedEvent : HistoryEvent
 {
-    using System.Runtime.Serialization;
+    /// <summary>
+    /// Creates a new ExecutionSuspendedEvent with the supplied params
+    /// </summary>
+    /// <param name="eventId">The event id of the history event</param>
+    /// <param name="reason">The serialized input of the suspension event</param>
+    public ExecutionSuspendedEvent(int eventId, string reason)
+        : base(eventId)
+    {
+        Reason = reason;
+    }
 
     /// <summary>
-    /// A history event for orchestration suspension.
+    /// Gets the event type
     /// </summary>
-    [DataContract]
-    public class ExecutionSuspendedEvent : HistoryEvent
-    {
-        /// <summary>
-        /// Creates a new ExecutionSuspendedEvent with the supplied params
-        /// </summary>
-        /// <param name="eventId">The event id of the history event</param>
-        /// <param name="reason">The serialized input of the suspension event</param>
-        public ExecutionSuspendedEvent(int eventId, string reason)
-            : base(eventId)
-        {
-            Reason = reason;
-        }
+    public override EventType EventType => EventType.ExecutionSuspended;
 
-        /// <summary>
-        /// Gets the event type
-        /// </summary>
-        public override EventType EventType => EventType.ExecutionSuspended;
-
-        /// <summary>
-        /// Gets or sets the serialized input for the the suspension event
-        /// </summary>
-        [DataMember]
-        public string Reason { get; set; }
-    }
+    /// <summary>
+    /// Gets or sets the serialized input for the the suspension event
+    /// </summary>
+    [DataMember]
+    public string Reason { get; set; }
 }
