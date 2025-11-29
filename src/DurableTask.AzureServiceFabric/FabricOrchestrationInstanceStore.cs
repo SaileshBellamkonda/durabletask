@@ -39,7 +39,7 @@ class FabricOrchestrationInstanceStore : IFabricOrchestrationServiceInstanceStor
     const string TimeFormatStringPrefix = "yyyy-MM-dd-";
     readonly IReliableStateManager stateManager;
     readonly CancellationToken cancellationToken;
-    readonly ConcurrentDictionary<string, AsyncManualResetEvent> orchestrationWaiters = new ConcurrentDictionary<string, AsyncManualResetEvent>(StringComparer.Ordinal);
+    readonly ConcurrentDictionary<string, AsyncManualResetEvent> orchestrationWaiters = new(StringComparer.Ordinal);
 
     IReliableDictionary<string, OrchestrationState> instanceStore;
     IReliableDictionary<string, List<string>> executionIdStore;

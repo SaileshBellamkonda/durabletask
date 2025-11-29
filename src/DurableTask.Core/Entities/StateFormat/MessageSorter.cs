@@ -221,7 +221,7 @@ internal class MessageSorter
             // this message is waiting for a non-delivered predecessor in the window, buffer it
             if (receiveBuffer.Buffered == null)
             {
-                receiveBuffer.Buffered = new SortedDictionary<DateTime, RequestMessage>();
+                receiveBuffer.Buffered = new();
             }
 
             receiveBuffer.Buffered[message.Timestamp] = message;

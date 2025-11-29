@@ -335,7 +335,7 @@ public class OrchestrationEntityContext
     /// <param name="criticalSectionId">The guid for the lock operation</param>
     public void CompleteAcquire(OperationResult result, Guid criticalSectionId)
     {
-        this.availableLocks = new HashSet<EntityId>(this.criticalSectionLocks);
+        this.availableLocks = new(this.criticalSectionLocks);
         this.lockAcquisitionPending = false;
     }
 

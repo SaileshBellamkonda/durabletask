@@ -38,7 +38,7 @@ class FabricOrchestrationService : IOrchestrationService
     readonly FabricOrchestrationProviderSettings settings;
     readonly CancellationTokenSource cancellationTokenSource;
 
-    ConcurrentDictionary<string, SessionInformation> sessionInfos = new ConcurrentDictionary<string, SessionInformation>();
+    ConcurrentDictionary<string, SessionInformation> sessionInfos = new();
 
     public FabricOrchestrationService(IReliableStateManager stateManager,
         SessionProvider orchestrationProvider,

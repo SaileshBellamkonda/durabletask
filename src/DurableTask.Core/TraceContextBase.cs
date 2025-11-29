@@ -33,7 +33,7 @@ public abstract class TraceContextBase
     /// </summary>
     protected TraceContextBase()
     {
-        OrchestrationTraceContexts = new Stack<TraceContextBase>();
+        OrchestrationTraceContexts = new();
     }
 
     static TraceContextBase()

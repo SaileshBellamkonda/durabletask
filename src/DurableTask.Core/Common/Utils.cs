@@ -444,15 +444,8 @@ public static class Utils
     /// </summary>
     public static string SerializeCause(Exception originalException, DataConverter converter)
     {
-        if (originalException == null)
-        {
-            throw new ArgumentNullException(nameof(originalException));
-        }
-
-        if (converter == null)
-        {
-            throw new ArgumentNullException(nameof(converter));
-        }
+        ArgumentNullException.ThrowIfNull(originalException);
+        ArgumentNullException.ThrowIfNull(converter);
 
         string details;
         try
@@ -474,10 +467,7 @@ public static class Utils
     /// </summary>
     public static Exception? RetrieveCause(string details, DataConverter converter)
     {
-        if (converter == null)
-        {
-            throw new ArgumentNullException(nameof(converter));
-        }
+        ArgumentNullException.ThrowIfNull(converter);
 
         Exception? cause = null;
         try
