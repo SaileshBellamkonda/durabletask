@@ -22,15 +22,12 @@ internal class OperationActionConverter : JsonCreationConverter<OperationAction>
         if (jsonObject.TryGetPropertyValue("OperationActionType", out JsonNode actionTypeNode))
         {
             var type = (OperationActionType)int.Parse(actionTypeNode.ToString());
-            switch (type)
+            return type switch
             {
-                case OperationActionType.SendSignal:
-                    return new SendSignalOperationAction();
-                case OperationActionType.StartNewOrchestration:
-                    return new StartNewOrchestrationOperationAction();
-                default:
-                    throw new NotSupportedException("Unrecognized action type.");
-            }
+                OperationActionType.SendSignal => new SendSignalOperationAction(),
+                OperationActionType.StartNewOrchestration => new StartNewOrchestrationOperationAction(),
+                _ => throw new NotSupportedException("Unrecognized action type.")
+            };
         }
 
         throw new NotSupportedException("Action Type not provided.");
