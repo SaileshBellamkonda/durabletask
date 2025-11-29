@@ -683,7 +683,7 @@ public static class Utils
         if (typeToConvert.IsGenericType)
         {
             Type[] genericArgs = typeToConvert.GetGenericArguments();
-            List<Type> genericTypeValues = new List<Type>();
+            List<Type> genericTypeValues = [];
 
             foreach (Type genericArg in genericArgs)
             {

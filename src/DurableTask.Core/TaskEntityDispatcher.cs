@@ -513,7 +513,7 @@ public class TaskEntityDispatcher
                             {
                                 // message was delivered too early. This can happen e.g. if the orchestration service has limits on the delay times for messages.
                                 // We handle this by rescheduling the message instead of processing it.
-                                deliverNow = Array.Empty<RequestMessage>();
+                                deliverNow = [];
                                 batch.AddMessageToBeRescheduled(requestMessage);
 
                                 // We do not want to create the Activity for the request yet since it will be redelivered again later. In the case that the parent trace context was attached
@@ -640,7 +640,7 @@ public class TaskEntityDispatcher
         {
             if (this.operationBatch == null)
             {
-                this.operationBatch = new List<RequestMessage>();
+                this.operationBatch = [];
             }
             this.operationBatch.Add(operationMessage);
         }
@@ -655,7 +655,7 @@ public class TaskEntityDispatcher
         {
             if (this.toBeRescheduled == null)
             {
-                this.toBeRescheduled = new List<RequestMessage>();
+                this.toBeRescheduled = [];
             }
             this.toBeRescheduled.Add(requestMessage);
         }

@@ -77,7 +77,7 @@ public class LocalOrchestrationService : IOrchestrationService, IOrchestrationSe
 
         this.sessionState = new Dictionary<string, byte[]>();
 
-        this.timerMessages = new List<TaskMessage>();
+        this.timerMessages = [];
         this.instanceStore = new Dictionary<string, Dictionary<string, OrchestrationState>>();
         this.orchestrationWaiters = new ConcurrentDictionary<string, TaskCompletionSource<OrchestrationState>>();
         this.cancellationTokenSource = new CancellationTokenSource();
@@ -365,7 +365,7 @@ public class LocalOrchestrationService : IOrchestrationService, IOrchestrationSe
             }
             else
             {
-                response = new List<OrchestrationState>();
+                response = [];
             }
         }
 

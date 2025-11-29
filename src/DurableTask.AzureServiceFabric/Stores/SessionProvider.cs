@@ -221,7 +221,7 @@ class SessionProvider : MessageProviderBase<string, PersistentSession>
 
     public async Task<IList<OrchestrationInstance>> TryAppendMessageBatchAsync(ITransaction transaction, IEnumerable<TaskMessageItem> newMessages)
     {
-        List<OrchestrationInstance> modifiedSessions = new List<OrchestrationInstance>();
+        List<OrchestrationInstance> modifiedSessions = [];
 
         var groups = newMessages.GroupBy(m => m.TaskMessage.OrchestrationInstance, OrchestrationInstanceComparer.Default);
 

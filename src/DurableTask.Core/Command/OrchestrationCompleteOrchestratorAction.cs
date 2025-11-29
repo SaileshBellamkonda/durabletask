@@ -54,7 +54,7 @@ public class OrchestrationCompleteOrchestratorAction : OrchestratorAction
     /// <summary>
     /// Gets a list of events that should be carried over when continuing an orchestration as new.
     /// </summary>
-    public IList<HistoryEvent> CarryoverEvents { get; } = new List<HistoryEvent>();
+    public IList<HistoryEvent> CarryoverEvents { get; } = [];
 
     /// <summary>
     /// Gets a collection of tags associated with the completion action.

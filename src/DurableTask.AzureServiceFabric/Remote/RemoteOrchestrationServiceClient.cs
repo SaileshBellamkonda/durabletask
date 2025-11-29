@@ -187,7 +187,7 @@ public class RemoteOrchestrationServiceClient : IOrchestrationServiceClient, IDi
     /// <param name="timeRangeFilterType">What to compare the threshold date time against</param>
     public async Task PurgeOrchestrationHistoryAsync(DateTime thresholdDateTimeUtc, OrchestrationStateTimeRangeFilterType timeRangeFilterType)
     {
-        List<Task<HttpResponseMessage>> allTasks = new List<Task<HttpResponseMessage>>();
+        List<Task<HttpResponseMessage>> allTasks = [];
         foreach (var endpoint in await this.GetAllEndpointsAsync(CancellationToken.None))
         {
             var uri = $"{endpoint.ToString()}/{GetHistoryFragment()}";

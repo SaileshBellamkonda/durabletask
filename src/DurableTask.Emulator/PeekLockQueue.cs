@@ -28,7 +28,7 @@ internal class PeekLockQueue
 
     public PeekLockQueue()
     {
-        this.messages = new List<TaskMessage>();
+        this.messages = [];
         this.lockTable = new HashSet<TaskMessage>();
     }
 

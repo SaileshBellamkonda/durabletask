@@ -81,9 +81,9 @@ public class OrchestrationRuntimeState
     /// <param name="events">List of events for this runtime state</param>
     public OrchestrationRuntimeState(IList<HistoryEvent>? events)
     {
-        Events = events != null ? new List<HistoryEvent>(events.Count) : new List<HistoryEvent>();
-        PastEvents = events != null ? new List<HistoryEvent>(events.Count) : new List<HistoryEvent>();
-        NewEvents = new List<HistoryEvent>();
+        Events = events != null ? new List<HistoryEvent>(events.Count) : [];
+        PastEvents = events != null ? new List<HistoryEvent>(events.Count) : [];
+        NewEvents = [];
         completedEventIds = new HashSet<int>();
         orchestrationStatus = OrchestrationStatus.Running;
 

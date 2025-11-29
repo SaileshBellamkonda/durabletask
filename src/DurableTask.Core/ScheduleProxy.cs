@@ -59,7 +59,7 @@ internal class ScheduleProxy : IInterceptor
             throw new InvalidOperationException($"Invoked method must return a task. Current return type is {invocation.Method.ReturnType}");
         }
 
-        Type[] genericArgumentValues = invocation.GenericArguments ?? Array.Empty<Type>();
+        Type[] genericArgumentValues = invocation.GenericArguments ?? [];
         List<object> arguments = new(invocation.Arguments);
 
         foreach (var typeArg in genericArgumentValues)

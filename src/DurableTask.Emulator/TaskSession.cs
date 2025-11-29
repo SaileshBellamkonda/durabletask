@@ -25,7 +25,7 @@ internal class TaskSession
     public TaskSession()
     {
         this.SessionState = null;
-        this.Messages = new List<TaskMessage>();
+        this.Messages = [];
         this.LockTable = new HashSet<TaskMessage>();
     }
 }

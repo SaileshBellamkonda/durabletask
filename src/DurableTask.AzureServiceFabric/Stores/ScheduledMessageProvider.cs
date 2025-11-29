@@ -97,7 +97,7 @@ class ScheduledMessageProvider : MessageProviderBase<Guid, TaskMessageItem>
                 var nextCheck = currentTime + TimeSpan.FromSeconds(1);
 
                 var builder = this.inMemorySet.ToBuilder();
-                List<Message<Guid, TaskMessageItem>> activatedMessages = new List<Message<Guid, TaskMessageItem>>();
+                List<Message<Guid, TaskMessageItem>> activatedMessages = [];
 
                 while (builder.Count > 0)
                 {

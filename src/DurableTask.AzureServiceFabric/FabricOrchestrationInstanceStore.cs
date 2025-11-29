@@ -282,8 +282,8 @@ class FabricOrchestrationInstanceStore : IFabricOrchestrationServiceInstanceStor
     {
         return Utils.RunBackgroundJob(async () =>
         {
-            List<string> toDelete = new List<string>();
-            List<string> toKeep = new List<string>();
+            List<string> toDelete = [];
+            List<string> toKeep = [];
             var currentTime = DateTime.UtcNow;
             var ttl = TimeSpan.FromDays(1);
 

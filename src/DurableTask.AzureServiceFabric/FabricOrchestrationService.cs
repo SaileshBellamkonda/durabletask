@@ -101,7 +101,7 @@ class FabricOrchestrationService : IOrchestrationService
 
     public Task DeleteAsync(bool deleteInstanceStore)
     {
-        List<Task> tasks = new List<Task>();
+        List<Task> tasks = [];
         tasks.Add(this.stateManager.RemoveAsync(Constants.OrchestrationDictionaryName));
         tasks.Add(this.stateManager.RemoveAsync(Constants.ScheduledMessagesDictionaryName));
         tasks.Add(this.stateManager.RemoveAsync(Constants.ActivitiesQueueName));
@@ -281,7 +281,7 @@ class FabricOrchestrationService : IOrchestrationService
                         if (continuedAsNewMessage != null)
                         {
                             await this.orchestrationProvider.AppendMessageAsync(txn, new TaskMessageItem(continuedAsNewMessage));
-                            sessionsToEnqueue = new List<OrchestrationInstance>() { continuedAsNewMessage.OrchestrationInstance };
+                            sessionsToEnqueue = [continuedAsNewMessage.OrchestrationInstance];
                         }
 
                         await this.orchestrationProvider.CompleteMessages(txn, sessionInfo.Instance, sessionInfo.LockTokens);

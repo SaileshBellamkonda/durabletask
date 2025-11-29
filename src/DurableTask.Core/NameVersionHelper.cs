@@ -133,7 +133,7 @@ public static class NameVersionHelper
         {
             visited = new HashSet<string>();
         }
-        List<MethodInfo> result = new List<MethodInfo>();
+        List<MethodInfo> result = [];
         foreach (MethodInfo m in t.GetMethods())
         {
             string name = getMethodUniqueId(m);
