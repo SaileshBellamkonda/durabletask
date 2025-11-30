@@ -14,121 +14,119 @@
 
 // NOTE: Changing the order of variables may cause bugs in OOProc SDKs. When introducing
 //       new EventTypes, append them at the end.
-namespace DurableTask.Core.History
+namespace DurableTask.Core.History;
+/// <summary>
+/// Enumeration of event types for orchestration, activity and history events
+/// </summary>
+public enum EventType
 {
     /// <summary>
-    /// Enumeration of event types for orchestration, activity and history events
+    /// Orchestration execution has started event
     /// </summary>
-    public enum EventType
-    {
-        /// <summary>
-        /// Orchestration execution has started event
-        /// </summary>
-        ExecutionStarted,
+    ExecutionStarted,
 
-        /// <summary>
-        /// Orchestration execution has completed event
-        /// </summary>
-        ExecutionCompleted,
+    /// <summary>
+    /// Orchestration execution has completed event
+    /// </summary>
+    ExecutionCompleted,
 
-        /// <summary>
-        /// Orchestration execution has failed event
-        /// </summary>
-        ExecutionFailed,
+    /// <summary>
+    /// Orchestration execution has failed event
+    /// </summary>
+    ExecutionFailed,
 
-        /// <summary>
-        /// Orchestration was terminated event
-        /// </summary>
-        ExecutionTerminated,
+    /// <summary>
+    /// Orchestration was terminated event
+    /// </summary>
+    ExecutionTerminated,
 
-        /// <summary>
-        /// Task Activity scheduled event 
-        /// </summary>
-        TaskScheduled,
+    /// <summary>
+    /// Task Activity scheduled event 
+    /// </summary>
+    TaskScheduled,
 
-        /// <summary>
-        /// Task Activity completed event
-        /// </summary>
-        TaskCompleted,
+    /// <summary>
+    /// Task Activity completed event
+    /// </summary>
+    TaskCompleted,
 
-        /// <summary>
-        /// Task Activity failed event
-        /// </summary>
-        TaskFailed,
+    /// <summary>
+    /// Task Activity failed event
+    /// </summary>
+    TaskFailed,
 
-        /// <summary>
-        /// Sub Orchestration instance created event
-        /// </summary>
-        SubOrchestrationInstanceCreated,
+    /// <summary>
+    /// Sub Orchestration instance created event
+    /// </summary>
+    SubOrchestrationInstanceCreated,
 
-        /// <summary>
-        /// Sub Orchestration instance completed event
-        /// </summary>
-        SubOrchestrationInstanceCompleted,
+    /// <summary>
+    /// Sub Orchestration instance completed event
+    /// </summary>
+    SubOrchestrationInstanceCompleted,
 
-        /// <summary>
-        /// Sub Orchestration instance failed event
-        /// </summary>
-        SubOrchestrationInstanceFailed,
+    /// <summary>
+    /// Sub Orchestration instance failed event
+    /// </summary>
+    SubOrchestrationInstanceFailed,
 
-        /// <summary>
-        /// Timer created event
-        /// </summary>
-        TimerCreated,
+    /// <summary>
+    /// Timer created event
+    /// </summary>
+    TimerCreated,
 
-        /// <summary>
-        /// Timer fired event
-        /// </summary>
-        TimerFired,
+    /// <summary>
+    /// Timer fired event
+    /// </summary>
+    TimerFired,
 
-        /// <summary>
-        /// Orchestration has started event
-        /// </summary>
-        OrchestratorStarted,
+    /// <summary>
+    /// Orchestration has started event
+    /// </summary>
+    OrchestratorStarted,
 
-        /// <summary>
-        /// Orchestration has completed event
-        /// </summary>
-        OrchestratorCompleted,
+    /// <summary>
+    /// Orchestration has completed event
+    /// </summary>
+    OrchestratorCompleted,
 
-        /// <summary>
-        /// Event was sent by an orchestration
-        /// </summary>
-        EventSent,
+    /// <summary>
+    /// Event was sent by an orchestration
+    /// </summary>
+    EventSent,
 
-        /// <summary>
-        /// Event was raised to orchestration event
-        /// </summary>
-        EventRaised,
+    /// <summary>
+    /// Event was raised to orchestration event
+    /// </summary>
+    EventRaised,
 
-        /// <summary>
-        /// Orchestration Continued as new event
-        /// </summary>
-        ContinueAsNew,
+    /// <summary>
+    /// Orchestration Continued as new event
+    /// </summary>
+    ContinueAsNew,
 
-        /// <summary>
-        /// Generic event for tracking event existence
-        /// </summary>
-        GenericEvent,
+    /// <summary>
+    /// Generic event for tracking event existence
+    /// </summary>
+    GenericEvent,
 
-        /// <summary>
-        /// Orchestration state history event
-        /// </summary>
-        HistoryState,
+    /// <summary>
+    /// Orchestration state history event
+    /// </summary>
+    HistoryState,
 
-        /// <summary>
-        /// Orchestration was suspended event
-        /// </summary>
-        ExecutionSuspended,
+    /// <summary>
+    /// Orchestration was suspended event
+    /// </summary>
+    ExecutionSuspended,
 
-        /// <summary>
-        /// Orchestration was resumed event
-        /// </summary>
-        ExecutionResumed,
+    /// <summary>
+    /// Orchestration was resumed event
+    /// </summary>
+    ExecutionResumed,
 
-        /// <summary>
-        /// Orchestration was rewound event.
-        /// </summary>
-        ExecutionRewound,
-    }
+    /// <summary>
+    /// Orchestration was rewound event.
+    /// </summary>
+    ExecutionRewound,
 }

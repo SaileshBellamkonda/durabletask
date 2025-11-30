@@ -2,26 +2,13 @@
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory),DurableTask.sln))\tools\DurableTask.props" />
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net462</TargetFrameworks>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
   </PropertyGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
-    <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' != 'net462'">
-    <!-- Increasing Azure.Monitor.OpenTelemetry.Exporter to 1.0.0-beta.5 or beyond brings Systems.DiagnosticSource 7.x, which is uncompatible with netcoreapp3.1.
-    The warning reads:
-	  "System.Diagnostics.DiagnosticSource 7.0.0-rc.1.22426.10 doesn't support netcoreapp3.1 and has not been tested with it
-	  Consider upgrading your TargetFramework to net6.0 or later. You may also set <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings> 
-	  in the project file to ignore this warning and attempt to run in this unsupported configuration at your own risk."-->
-    <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" />
-  </ItemGroup>
 
   <!-- Common package dependencies -->
   <ItemGroup>
-    <PackageReference Include="WindowsAzure.Storage" />
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" />
     <PackageReference Include="Microsoft.ApplicationInsights.DependencyCollector" />
@@ -29,11 +16,8 @@
     <PackageReference Include="MSTest.TestAdapter" />
     <PackageReference Include="MSTest.TestFramework" />
     <PackageReference Include="Moq" />
-
-    <!-- We don't really make use of these dependencies, but 1ES somehow detects them in our test project and flags them for update.
-	Since this is just a test project, and to prevent "warning fatigue" so real CVEs stand out, we choose to upgrade the dependency explicitly to remove the false alarm.-->
-    <PackageReference Include="System.Data.SqlClient" /> <!-- Version 4.3.1 was detected by default-->
-    <PackageReference Include="Microsoft.Data.Services.Client" /> <!-- Without this, we resolve Microsoft.Data.OData 5.8.2, which is flagged-->
+    <PackageReference Include="System.Data.SqlClient" />
+    <PackageReference Include="Microsoft.Data.Services.Client" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,10 +25,6 @@
     <ProjectReference Include="..\..\src\DurableTask.AzureStorage\DurableTask.AzureStorage.csproj" />
     <ProjectReference Include="..\DurableTask.Core.Tests\DurableTask.Core.Tests.csproj" />
     <ProjectReference Include="..\DurableTask.Test.Orchestrations\DurableTask.Test.Orchestrations.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
-    <Reference Include="System.Configuration" />
   </ItemGroup>
 
   <ItemGroup>

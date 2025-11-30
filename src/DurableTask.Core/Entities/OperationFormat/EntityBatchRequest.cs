@@ -10,32 +10,30 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
-#nullable enable
-namespace DurableTask.Core.Entities.OperationFormat
+// #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
+namespace DurableTask.Core.Entities.OperationFormat;
+using System.Collections.Generic;
+
+/// <summary>
+/// A request for execution of a batch of operations on an entity.
+/// </summary>
+public class EntityBatchRequest
 {
-    using System.Collections.Generic;
+    // NOTE: Actions must be serializable by a variety of different serializer types to support out-of-process execution.
+    //       To ensure maximum compatibility, all properties should be public and settable by default.
 
     /// <summary>
-    /// A request for execution of a batch of operations on an entity.
+    /// The instance id for this entity.
     /// </summary>
-    public class EntityBatchRequest
-    {
-        // NOTE: Actions must be serializable by a variety of different serializer types to support out-of-process execution.
-        //       To ensure maximum compatibility, all properties should be public and settable by default.
+    public string? InstanceId { get; set; }
 
-        /// <summary>
-        /// The instance id for this entity.
-        /// </summary>
-        public string? InstanceId { get; set; }
+    /// <summary>
+    /// The current state of the entity, or null if the entity does not exist.
+    /// </summary>
+    public string? EntityState { get; set; }
 
-        /// <summary>
-        /// The current state of the entity, or null if the entity does not exist.
-        /// </summary>
-        public string? EntityState { get; set; }
-
-        /// <summary>
-        /// The list of operations to be performed on the entity.
-        /// </summary>
-        public List<OperationRequest>? Operations { get; set; }
-    }
+    /// <summary>
+    /// The list of operations to be performed on the entity.
+    /// </summary>
+    public List<OperationRequest>? Operations { get; set; }
 }

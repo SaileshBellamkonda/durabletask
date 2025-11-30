@@ -10,42 +10,40 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
-#nullable enable
-namespace DurableTask.Core.Entities.EventFormat
+// #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
+namespace DurableTask.Core.Entities.EventFormat;
+using System.Runtime.Serialization;
+
+[DataContract]
+internal class ResponseMessage : EntityMessage
 {
-    using System.Runtime.Serialization;
+    public const string LockAcquisitionCompletion = "Lock Acquisition Completed";
 
-    [DataContract]
-    internal class ResponseMessage : EntityMessage
+    [DataMember(Name = "result")]
+    public string? Result { get; set; }
+
+    [DataMember(Name = "exceptionType", EmitDefaultValue = false)]
+    public string? ErrorMessage { get; set; }
+
+    [DataMember(Name = "failureDetails", EmitDefaultValue = false)]
+    public FailureDetails? FailureDetails { get; set; }
+
+    [IgnoreDataMember]
+    public bool IsErrorResult => this.ErrorMessage != null || this.FailureDetails != null;
+
+    public override string GetShortDescription()
     {
-        public const string LockAcquisitionCompletion = "Lock Acquisition Completed";
-
-        [DataMember(Name = "result")]
-        public string? Result { get; set; }
-
-        [DataMember(Name = "exceptionType", EmitDefaultValue = false)]
-        public string? ErrorMessage { get; set; }
-
-        [DataMember(Name = "failureDetails", EmitDefaultValue = false)]
-        public FailureDetails? FailureDetails { get; set; }
-
-        [IgnoreDataMember]
-        public bool IsErrorResult => this.ErrorMessage != null || this.FailureDetails != null;
-
-        public override string GetShortDescription()
+        if (this.IsErrorResult)
         {
-            if (this.IsErrorResult)
-            {
-                return $"[OperationFailed {this.FailureDetails?.ErrorMessage ?? this.ErrorMessage}]";
-            }
-            else if (this.Result == LockAcquisitionCompletion)
-            {
-                return "[LockAcquisitionComplete]";
-            }
-            else
-            {
-                return $"[OperationSuccessful ({Result?.Length ?? 0} chars)]";
-            }
+            return $"[OperationFailed {this.FailureDetails?.ErrorMessage ?? this.ErrorMessage}]";
+        }
+        else if (this.Result == LockAcquisitionCompletion)
+        {
+            return "[LockAcquisitionComplete]";
+        }
+        else
+        {
+            return $"[OperationSuccessful ({Result?.Length ?? 0} chars)]";
         }
     }
 }

@@ -11,25 +11,23 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core
+namespace DurableTask.Core;
+using System.Reflection;
+using Castle.DynamicProxy;
+
+internal class ScheduleProxyV2 : ScheduleProxy, IInterceptor
 {
-    using System.Reflection;
-    using Castle.DynamicProxy;
+    private readonly string declaringTypeFullName;
 
-    internal class ScheduleProxyV2 : ScheduleProxy, IInterceptor
+    public ScheduleProxyV2(OrchestrationContext context, string declaringTypeFullName)
+        : base(context)
     {
-        private readonly string declaringTypeFullName;
+        this.declaringTypeFullName = declaringTypeFullName;
+    }
 
-        public ScheduleProxyV2(OrchestrationContext context, string declaringTypeFullName)
-            : base(context)
-        {
-            this.declaringTypeFullName = declaringTypeFullName;
-        }
-
-        protected override string NormalizeMethodName(MethodInfo method)
-        {
-            // uses declaring type defined externally because MethodInfo members, such as Method.DeclaringType, could return the base type that the method inherits from
-            return string.IsNullOrEmpty(this.declaringTypeFullName) ? method.Name : NameVersionHelper.GetFullyQualifiedMethodName(this.declaringTypeFullName, method);
-        }
+    protected override string NormalizeMethodName(MethodInfo method)
+    {
+        // uses declaring type defined externally because MethodInfo members, such as Method.DeclaringType, could return the base type that the method inherits from
+        return string.IsNullOrEmpty(this.declaringTypeFullName) ? method.Name : NameVersionHelper.GetFullyQualifiedMethodName(this.declaringTypeFullName, method);
     }
 }

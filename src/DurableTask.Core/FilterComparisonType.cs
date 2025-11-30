@@ -11,21 +11,19 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core
+namespace DurableTask.Core;
+/// <summary>
+/// The kind of comparison to be performed in the State Filter.
+/// </summary>
+public enum FilterComparisonType
 {
     /// <summary>
-    /// The kind of comparison to be performed in the State Filter.
+    /// Equality Comparison
     /// </summary>
-    public enum FilterComparisonType
-    {
-        /// <summary>
-        /// Equality Comparison
-        /// </summary>
-        Equals = 0,
+    Equals = 0,
 
-        /// <summary>
-        /// In-Equality Comparison
-        /// </summary>
-        NotEquals = 1
-    }
+    /// <summary>
+    /// In-Equality Comparison
+    /// </summary>
+    NotEquals = 1
 }

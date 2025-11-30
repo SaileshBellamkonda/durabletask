@@ -11,55 +11,58 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core.Serializing
+namespace DurableTask.Core.Serializing;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+
+/// <summary>
+/// SerializationBinder to be used for deserializing DurableTask types that are pre v-2.0, this allows upgrade compatibility.
+/// This is not sufficient to deserialize objects from 1.0 which had the Tags Property set.
+/// NOTE: This class is retained for backward compatibility but is no longer used with System.Text.Json.
+/// Type resolution is now handled through standard reflection in PolymorphicTypeResolver.
+/// </summary>
+[ComVisible(false)]
+[Obsolete("This class is no longer used with System.Text.Json. Type resolution is handled by PolymorphicTypeResolver.")]
+public class PackageUpgradeSerializationBinder
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Runtime.InteropServices;
-    using Newtonsoft.Json.Serialization;
+    static readonly Lazy<IDictionary<string, Type>> KnownTypes = new Lazy<IDictionary<string, Type>>(() =>
+    {
+        //Get all types in the DurableTask.Core Namespace
+        return typeof(PackageUpgradeSerializationBinder).Assembly.GetTypes()
+            .Where(t => t?.Namespace?.StartsWith("DurableTask.Core") ?? false)
+            .ToDictionary(x => x.FullName);
+    });
+
+    static readonly string CurrentAssemblyName = typeof(PackageUpgradeSerializationBinder).Assembly.GetName().Name;
+    static readonly ISet<string> UpgradeableAssemblyNames = new HashSet<string> { "DurableTask", "DurableTaskFx" };
 
     /// <summary>
-    /// SerializationBinder to be used for deserializing DurableTask types that are pre v-2.0, this allows upgrade compatibility.
-    /// This is not sufficient to deserialize objects from 1.0 which had the Tags Property set.
+    /// Resolves a type from assembly name and type name for upgrade compatibility.
     /// </summary>
-    [ComVisible(false)]
-    public class PackageUpgradeSerializationBinder : DefaultSerializationBinder
+    public static Type BindToType(string assemblyName, string typeName)
     {
-        static readonly Lazy<IDictionary<string, Type>> KnownTypes = new Lazy<IDictionary<string, Type>>(() =>
+        Type resolvedType = null;
+
+        if (assemblyName != CurrentAssemblyName && !string.IsNullOrWhiteSpace(typeName))
         {
-            //Get all types in the DurableTask.Core Namespace
-            return typeof(PackageUpgradeSerializationBinder).Assembly.GetTypes()
-                .Where(t => t?.Namespace?.StartsWith("DurableTask.Core") ?? false)
-                .ToDictionary(x => x.FullName);
-        });
+            //Separator Index if TypeNameAssemblyFormat Full
+            int separatorIndex = assemblyName.IndexOf(',');
 
-        static readonly string CurrentAssemblyName = typeof(PackageUpgradeSerializationBinder).Assembly.GetName().Name;
-        static readonly ISet<string> UpgradeableAssemblyNames = new HashSet<string> { "DurableTask", "DurableTaskFx" };
-
-        /// <inheritdoc />
-        public override Type BindToType(string assemblyName, string typeName)
-        {
-            Type resolvedType = null;
-
-            if (assemblyName != CurrentAssemblyName && !string.IsNullOrWhiteSpace(typeName))
+            //If no assembly name is specified or this is a type from the v1.0 or vnext assemblies
+            if (string.IsNullOrWhiteSpace(assemblyName) || UpgradeableAssemblyNames.Contains(separatorIndex < 0 ? assemblyName : assemblyName.Substring(0, assemblyName.IndexOf(','))))
             {
-                //Separator Index if TypeNameAssemblyFormat Full
-                int separatorIndex = assemblyName.IndexOf(',');
-
-                //If no assembly name is specified or this is a type from the v1.0 or vnext assemblies
-                if (string.IsNullOrWhiteSpace(assemblyName) || UpgradeableAssemblyNames.Contains(separatorIndex < 0 ? assemblyName : assemblyName.Substring(0, assemblyName.IndexOf(','))))
-                {
-                    KnownTypes.Value.TryGetValue(typeName.Replace("DurableTask.", "DurableTask.Core."), out resolvedType);
-                }
+                KnownTypes.Value.TryGetValue(typeName.Replace("DurableTask.", "DurableTask.Core."), out resolvedType);
             }
-
-            if (resolvedType == null)
-            {
-                resolvedType = base.BindToType(assemblyName, typeName);
-            }
-
-            return resolvedType;
         }
-    };
-}
+
+        if (resolvedType == null)
+        {
+            // Fallback to default type resolution
+            resolvedType = Type.GetType($"{typeName}, {assemblyName}");
+        }
+
+        return resolvedType;
+    }
+};

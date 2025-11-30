@@ -11,91 +11,89 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.AzureServiceFabric
+namespace DurableTask.AzureServiceFabric;
+using System;
+using System.Threading;
+using DurableTask.AzureServiceFabric.Stores;
+using DurableTask.Core;
+using DurableTask.Core.Query;
+using Microsoft.ServiceFabric.Data;
+
+/// <summary>
+/// Manages instances of a service fabric based store provider implementations
+/// for <see cref="IOrchestrationService"/> and <see cref="IOrchestrationServiceClient"/>
+/// to be used in constructing <see cref="TaskHubWorker"/> and <see cref="TaskHubClient"/>.
+/// </summary>
+/// <remarks>
+/// Use <see cref="FabricOrchestrationProviderFactory"/> to create an instance of <see cref="FabricOrchestrationProvider"/>.
+/// Note that this provider object should not be used once <see cref="TaskHubWorker.StopAsync()"/> method is called
+/// on the worker object created using this provider. A new provider object should be created after that point.
+/// </remarks>
+public sealed class FabricOrchestrationProvider : IDisposable
 {
-    using System;
-    using System.Threading;
-    using DurableTask.AzureServiceFabric.Stores;
-    using DurableTask.Core;
-    using DurableTask.Core.Query;
-    using Microsoft.ServiceFabric.Data;
+    readonly FabricOrchestrationService orchestrationService;
+    readonly FabricOrchestrationServiceClient orchestrationClient;
+    readonly CancellationTokenSource cancellationTokenSource;
+
+    internal FabricOrchestrationProvider(IReliableStateManager stateManager, FabricOrchestrationProviderSettings settings)
+    {
+        this.cancellationTokenSource = new CancellationTokenSource();
+        var sessionProvider = new SessionProvider(stateManager, cancellationTokenSource.Token);
+        var instanceStore = new FabricOrchestrationInstanceStore(stateManager, cancellationTokenSource.Token);
+        this.orchestrationService = new FabricOrchestrationService(stateManager, sessionProvider, instanceStore, settings, cancellationTokenSource);
+        this.orchestrationClient = new FabricOrchestrationServiceClient(stateManager, sessionProvider, instanceStore);
+    }
 
     /// <summary>
-    /// Manages instances of a service fabric based store provider implementations
-    /// for <see cref="IOrchestrationService"/> and <see cref="IOrchestrationServiceClient"/>
-    /// to be used in constructing <see cref="TaskHubWorker"/> and <see cref="TaskHubClient"/>.
+    /// <see cref="IOrchestrationService"/> instance that can be used for constructing <see cref="TaskHubWorker"/>.
     /// </summary>
-    /// <remarks>
-    /// Use <see cref="FabricOrchestrationProviderFactory"/> to create an instance of <see cref="FabricOrchestrationProvider"/>.
-    /// Note that this provider object should not be used once <see cref="TaskHubWorker.StopAsync()"/> method is called
-    /// on the worker object created using this provider. A new provider object should be created after that point.
-    /// </remarks>
-    public sealed class FabricOrchestrationProvider : IDisposable
+    public IOrchestrationService OrchestrationService
     {
-        readonly FabricOrchestrationService orchestrationService;
-        readonly FabricOrchestrationServiceClient orchestrationClient;
-        readonly CancellationTokenSource cancellationTokenSource;
-
-        internal FabricOrchestrationProvider(IReliableStateManager stateManager, FabricOrchestrationProviderSettings settings)
+        get
         {
-            this.cancellationTokenSource = new CancellationTokenSource();
-            var sessionProvider = new SessionProvider(stateManager, cancellationTokenSource.Token);
-            var instanceStore = new FabricOrchestrationInstanceStore(stateManager, cancellationTokenSource.Token);
-            this.orchestrationService = new FabricOrchestrationService(stateManager, sessionProvider, instanceStore, settings, cancellationTokenSource);
-            this.orchestrationClient = new FabricOrchestrationServiceClient(stateManager, sessionProvider, instanceStore);
+            EnsureValidInstance();
+            return this.orchestrationService;
         }
+    }
 
-        /// <summary>
-        /// <see cref="IOrchestrationService"/> instance that can be used for constructing <see cref="TaskHubWorker"/>.
-        /// </summary>
-        public IOrchestrationService OrchestrationService
+    /// <summary>
+    /// <see cref="IOrchestrationServiceClient"/> instance that can be used for constructing <see cref="TaskHubClient"/>.
+    /// </summary>
+    public IOrchestrationServiceClient OrchestrationServiceClient
+    {
+        get
         {
-            get
-            {
-                EnsureValidInstance();
-                return this.orchestrationService;
-            }
+            EnsureValidInstance();
+            return this.orchestrationClient;
         }
+    }
 
-        /// <summary>
-        /// <see cref="IOrchestrationServiceClient"/> instance that can be used for constructing <see cref="TaskHubClient"/>.
-        /// </summary>
-        public IOrchestrationServiceClient OrchestrationServiceClient
+    /// <summary>
+    /// <see cref="IFabricProviderClient"/> instance that can be used for debugging />.
+    /// </summary>
+    public IFabricProviderClient FabricProviderClient
+    {
+        get
         {
-            get
-            {
-                EnsureValidInstance();
-                return this.orchestrationClient;
-            }
+            EnsureValidInstance();
+            return this.orchestrationClient;
         }
+    }
 
-        /// <summary>
-        /// <see cref="IFabricProviderClient"/> instance that can be used for debugging />.
-        /// </summary>
-        public IFabricProviderClient FabricProviderClient
-        {
-            get
-            {
-                EnsureValidInstance();
-                return this.orchestrationClient;
-            }
-        }
+    /// <summary>
+    /// Disposes the object. The object should be disposed after <see cref="TaskHubWorker.StopAsync()"/>
+    /// is invoked on the <see cref="TaskHubWorker" /> created with the <see cref="OrchestrationService"/>.
+    /// </summary>
+    public void Dispose()
+    {
+        this.cancellationTokenSource.Dispose();
+    }
 
-        /// <summary>
-        /// Disposes the object. The object should be disposed after <see cref="TaskHubWorker.StopAsync()"/>
-        /// is invoked on the <see cref="TaskHubWorker" /> created with the <see cref="OrchestrationService"/>.
-        /// </summary>
-        public void Dispose()
+    void EnsureValidInstance()
+    {
+        if (this.cancellationTokenSource.IsCancellationRequested)
         {
-            this.cancellationTokenSource.Dispose();
-        }
-
-        void EnsureValidInstance()
-        {
-            if (this.cancellationTokenSource.IsCancellationRequested)
-            {
-                throw new InvalidOperationException($"{nameof(IOrchestrationService)} instance has been stopped. Discard this provider instance and create a new provider object.");
-            }
+            throw new InvalidOperationException($"{nameof(IOrchestrationService)} instance has been stopped. Discard this provider instance and create a new provider object.");
         }
     }
 }

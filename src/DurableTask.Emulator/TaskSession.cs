@@ -11,23 +11,21 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Emulator
+namespace DurableTask.Emulator;
+using DurableTask.Core;
+using System.Collections.Generic;
+
+internal class TaskSession
 {
-    using DurableTask.Core;
-    using System.Collections.Generic;
+    public string Id;
+    public byte[] SessionState;
+    public List<TaskMessage> Messages;
+    public HashSet<TaskMessage> LockTable;
 
-    internal class TaskSession
+    public TaskSession()
     {
-        public string Id;
-        public byte[] SessionState;
-        public List<TaskMessage> Messages;
-        public HashSet<TaskMessage> LockTable;
-
-        public TaskSession()
-        {
-            this.SessionState = null;
-            this.Messages = new List<TaskMessage>();
-            this.LockTable = new HashSet<TaskMessage>();
-        }
+        this.SessionState = null;
+        this.Messages = [];
+        this.LockTable = new HashSet<TaskMessage>();
     }
 }

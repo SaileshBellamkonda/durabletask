@@ -11,20 +11,18 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-#nullable enable
-namespace DurableTask.Core.Entities
-{
-    using System.Threading.Tasks;
-    using DurableTask.Core.Entities.OperationFormat;
+// #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
+namespace DurableTask.Core.Entities;
+using System.Threading.Tasks;
+using DurableTask.Core.Entities.OperationFormat;
 
+/// <summary>
+/// Abstract base class for entities. 
+/// </summary>
+public abstract class TaskEntity
+{
     /// <summary>
-    /// Abstract base class for entities. 
+    /// Execute a batch of operations on an entity.
     /// </summary>
-    public abstract class TaskEntity
-    {
-        /// <summary>
-        /// Execute a batch of operations on an entity.
-        /// </summary>
-        public abstract Task<EntityBatchResult> ExecuteOperationBatchAsync(EntityBatchRequest operations);
-    }
+    public abstract Task<EntityBatchResult> ExecuteOperationBatchAsync(EntityBatchRequest operations);
 }

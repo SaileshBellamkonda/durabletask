@@ -10,23 +10,21 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
-#nullable enable
-namespace DurableTask.Core.Entities.EventFormat
+// #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
+namespace DurableTask.Core.Entities.EventFormat;
+using System.Runtime.Serialization;
+
+[DataContract]
+internal class ReleaseMessage : EntityMessage
 {
-    using System.Runtime.Serialization;
+    [DataMember(Name = "parent")]
+    public string? ParentInstanceId { get; set; }
 
-    [DataContract]
-    internal class ReleaseMessage : EntityMessage
+    [DataMember(Name = "id")]
+    public string? Id { get; set; }
+
+    public override string GetShortDescription()
     {
-        [DataMember(Name = "parent")]
-        public string? ParentInstanceId { get; set; }
-
-        [DataMember(Name = "id")]
-        public string? Id { get; set; }
-
-        public override string GetShortDescription()
-        {
-            return $"[Release lock {Id} by {ParentInstanceId}]";
-        }
+        return $"[Release lock {Id} by {ParentInstanceId}]";
     }
 }

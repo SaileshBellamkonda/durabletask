@@ -10,16 +10,14 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
-#nullable enable
-namespace DurableTask.Core.Command
-{
+// #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
+namespace DurableTask.Core.Command;
 
-    /// <summary>
-    /// Orchestrator action for rewinding orchestrations.
-    /// </summary>
-    public class RewindOrchestrationAction : OrchestratorAction
-    {
-        /// <inheritdoc/>
-        public override OrchestratorActionType OrchestratorActionType => OrchestratorActionType.RewindOrchestration;
-    }
+/// <summary>
+/// Orchestrator action for rewinding orchestrations.
+/// </summary>
+public class RewindOrchestrationAction : OrchestratorAction
+{
+    /// <inheritdoc/>
+    public override OrchestratorActionType OrchestratorActionType => OrchestratorActionType.RewindOrchestration;
 }

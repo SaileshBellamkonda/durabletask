@@ -1,4 +1,4 @@
-//  ----------------------------------------------------------------------------------
+﻿//  ----------------------------------------------------------------------------------
 //  Copyright Microsoft Corporation
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -10,24 +10,22 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
-#nullable enable
-namespace DurableTask.Core
-{
-    using System;
-    using System.Collections.Generic;
+// #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
+namespace DurableTask.Core;
+using System;
+using System.Collections.Generic;
 
+/// <summary>
+/// Interface for providing custom properties from exceptions that will be included in FailureDetails.
+/// This interface is intended for implementation by the durabletask-dotnet layer, which will
+/// convert customer implementations to this interface and register them with DurableTask.Core.
+/// </summary>
+public interface IExceptionPropertiesProvider
+{
     /// <summary>
-    /// Interface for providing custom properties from exceptions that will be included in FailureDetails.
-    /// This interface is intended for implementation by the durabletask-dotnet layer, which will
-    /// convert customer implementations to this interface and register them with DurableTask.Core.
+    /// Extracts custom properties from an exception.
     /// </summary>
-    public interface IExceptionPropertiesProvider
-    {
-        /// <summary>
-        /// Extracts custom properties from an exception.
-        /// </summary>
-        /// <param name="exception">The exception to extract properties from.</param>
-        /// <returns>A dictionary of custom properties to include in the FailureDetails, or null if no properties should be added.</returns>
-        IDictionary<string, object?>? GetExceptionProperties(Exception exception);
-    }
+    /// <param name="exception">The exception to extract properties from.</param>
+    /// <returns>A dictionary of custom properties to include in the FailureDetails, or null if no properties should be added.</returns>
+    IDictionary<string, object?>? GetExceptionProperties(Exception exception);
 }

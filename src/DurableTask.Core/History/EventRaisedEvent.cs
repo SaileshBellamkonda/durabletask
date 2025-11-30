@@ -11,50 +11,48 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core.History
+namespace DurableTask.Core.History;
+using DurableTask.Core.Tracing;
+using System.Diagnostics;
+using System.Runtime.Serialization;
+
+/// <summary>
+/// A history event for event raised
+/// </summary>
+[DataContract]
+public class EventRaisedEvent : HistoryEvent, ISupportsDurableTraceContext
 {
-    using DurableTask.Core.Tracing;
-    using System.Diagnostics;
-    using System.Runtime.Serialization;
+    /// <summary>
+    /// Creates a new <see cref="EventRaisedEvent"/> with the supplied event id and input.
+    /// </summary>
+    /// <param name="eventId">The ID of the event.</param>
+    /// <param name="input">The serialized event payload.</param>
+    public EventRaisedEvent(int eventId, string input)
+        : base(eventId)
+    {
+        Input = input;
+    }
 
     /// <summary>
-    /// A history event for event raised
+    /// Gets the event type
     /// </summary>
-    [DataContract]
-    public class EventRaisedEvent : HistoryEvent, ISupportsDurableTraceContext
-    {
-        /// <summary>
-        /// Creates a new <see cref="EventRaisedEvent"/> with the supplied event id and input.
-        /// </summary>
-        /// <param name="eventId">The ID of the event.</param>
-        /// <param name="input">The serialized event payload.</param>
-        public EventRaisedEvent(int eventId, string input)
-            : base(eventId)
-        {
-            Input = input;
-        }
+    public override EventType EventType => EventType.EventRaised;
 
-        /// <summary>
-        /// Gets the event type
-        /// </summary>
-        public override EventType EventType => EventType.EventRaised;
+    /// <summary>
+    /// Gets or sets the orchestration name
+    /// </summary>
+    [DataMember]
+    public string Name { get; set; }
 
-        /// <summary>
-        /// Gets or sets the orchestration name
-        /// </summary>
-        [DataMember]
-        public string Name { get; set; }
+    /// <summary>
+    /// Gets or sets the serialized payload of the event
+    /// </summary>
+    [DataMember]
+    public string Input { get; set; }
 
-        /// <summary>
-        /// Gets or sets the serialized payload of the event
-        /// </summary>
-        [DataMember]
-        public string Input { get; set; }
-
-        /// <summary>
-        /// The W3C trace context associated with this event.
-        /// </summary>
-        [DataMember]
-        public DistributedTraceContext ParentTraceContext { get; set; }
-    }
+    /// <summary>
+    /// The W3C trace context associated with this event.
+    /// </summary>
+    [DataMember]
+    public DistributedTraceContext ParentTraceContext { get; set; }
 }

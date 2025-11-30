@@ -10,43 +10,41 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
-#nullable enable
+// #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
 using System.Collections.Generic;
 
-namespace DurableTask.Core.Command
+namespace DurableTask.Core.Command;
+/// <summary>
+/// Orchestrator action for scheduling activity tasks.
+/// </summary>
+public class ScheduleTaskOrchestratorAction : OrchestratorAction
 {
+    // NOTE: Actions must be serializable by a variety of different serializer types to support out-of-process execution.
+    //       To ensure maximum compatibility, all properties should be public and settable by default.
+
+    /// <inheritdoc/>
+    public override OrchestratorActionType OrchestratorActionType => OrchestratorActionType.ScheduleOrchestrator;
+
     /// <summary>
-    /// Orchestrator action for scheduling activity tasks.
+    /// Gets or sets the name of the activity to schedule.
     /// </summary>
-    public class ScheduleTaskOrchestratorAction : OrchestratorAction
-    {
-        // NOTE: Actions must be serializable by a variety of different serializer types to support out-of-process execution.
-        //       To ensure maximum compatibility, all properties should be public and settable by default.
+    public string? Name { get; set; }
 
-        /// <inheritdoc/>
-        public override OrchestratorActionType OrchestratorActionType => OrchestratorActionType.ScheduleOrchestrator;
+    /// <summary>
+    /// Gets or sets the version of the activity to schedule.
+    /// </summary>
+    public string? Version { get; set; }
 
-        /// <summary>
-        /// Gets or sets the name of the activity to schedule.
-        /// </summary>
-        public string? Name { get; set; }
+    /// <summary>
+    /// Gets or sets the input of the activity to schedule.
+    /// </summary>
+    public string? Input { get; set; }
 
-        /// <summary>
-        /// Gets or sets the version of the activity to schedule.
-        /// </summary>
-        public string? Version { get; set; }
+    // TODO: This property is not used and should be removed or made obsolete
+    internal string? Tasklist { get; set; }
 
-        /// <summary>
-        /// Gets or sets the input of the activity to schedule.
-        /// </summary>
-        public string? Input { get; set; }
-
-        // TODO: This property is not used and should be removed or made obsolete
-        internal string? Tasklist { get; set; }
-
-        /// <summary>
-        /// Gets or sets a dictionary of tags of string, string
-        /// </summary>
-        public IDictionary<string, string>? Tags { get; set; }
-    }
+    /// <summary>
+    /// Gets or sets a dictionary of tags of string, string
+    /// </summary>
+    public IDictionary<string, string>? Tags { get; set; }
 }

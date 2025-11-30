@@ -10,20 +10,18 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
-#nullable enable
-namespace DurableTask.Core
-{
-    using DurableTask.Core.History;
+// #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
+namespace DurableTask.Core;
+using DurableTask.Core.History;
 
+/// <summary>
+/// The result of an activity execution.
+/// </summary>
+public class ActivityExecutionResult
+{
     /// <summary>
-    /// The result of an activity execution.
+    /// This history event associated with the activity execution result.
+    /// This is expected to be <see cref="TaskCompletedEvent"/> or <see cref="TaskFailedEvent"/>.
     /// </summary>
-    public class ActivityExecutionResult
-    {
-        /// <summary>
-        /// This history event associated with the activity execution result.
-        /// This is expected to be <see cref="TaskCompletedEvent"/> or <see cref="TaskFailedEvent"/>.
-        /// </summary>
-        public HistoryEvent? ResponseEvent { get; set; }
-    }
+    public HistoryEvent? ResponseEvent { get; set; }
 }

@@ -11,23 +11,21 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.AzureServiceFabric.Exceptions
-{
-    using System;
+namespace DurableTask.AzureServiceFabric.Exceptions;
+using System;
 
+/// <summary>
+/// Exception representing that instanceId is not Valid.
+/// </summary>
+[Serializable]
+public class InvalidInstanceIdException : Exception
+{
     /// <summary>
-    /// Exception representing that instanceId is not Valid.
+    /// Creates an instance of <see cref="InvalidInstanceIdException"/>
     /// </summary>
-    [Serializable]
-    public class InvalidInstanceIdException : Exception
+    /// <param name="instanceId">Orchestration instance id</param>
+    public InvalidInstanceIdException(string instanceId)
+        : base("Not a valid instanceId: " + instanceId)
     {
-        /// <summary>
-        /// Creates an instance of <see cref="InvalidInstanceIdException"/>
-        /// </summary>
-        /// <param name="instanceId">Orchestration instance id</param>
-        public InvalidInstanceIdException(string instanceId)
-            : base("Not a valid instanceId: " + instanceId)
-        {
-        }
     }
 }

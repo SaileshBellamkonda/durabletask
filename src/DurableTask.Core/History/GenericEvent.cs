@@ -11,35 +11,33 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core.History
+namespace DurableTask.Core.History;
+using System.Runtime.Serialization;
+
+/// <summary>
+/// Generic History event
+/// </summary>
+[DataContract]
+public class GenericEvent : HistoryEvent
 {
-    using System.Runtime.Serialization;
+    /// <summary>
+    /// String data for this event
+    /// </summary>
+    [DataMember] public string Data;
 
     /// <summary>
-    /// Generic History event
+    /// Creates a new GenericEvent with the supplied event id and data
     /// </summary>
-    [DataContract]
-    public class GenericEvent : HistoryEvent
+    /// <param name="eventId">The integer event id</param>
+    /// <param name="data">The data for the event</param>
+    public GenericEvent(int eventId, string data)
+        : base(eventId)
     {
-        /// <summary>
-        /// String data for this event
-        /// </summary>
-        [DataMember] public string Data;
-
-        /// <summary>
-        /// Creates a new GenericEvent with the supplied event id and data
-        /// </summary>
-        /// <param name="eventId">The integer event id</param>
-        /// <param name="data">The data for the event</param>
-        public GenericEvent(int eventId, string data)
-            : base(eventId)
-        {
-            this.Data = data;
-        }
-
-        /// <summary>
-        /// Gets the event type
-        /// </summary>
-        public override EventType EventType => EventType.GenericEvent;
+        this.Data = data;
     }
+
+    /// <summary>
+    /// Gets the event type
+    /// </summary>
+    public override EventType EventType => EventType.GenericEvent;
 }

@@ -11,35 +11,28 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core.Command
+namespace DurableTask.Core.Command;
+using System;
+using System.Text.Json.Nodes;
+using DurableTask.Core.Serializing;
+
+internal class OrchestrationActionConverter : JsonCreationConverter<OrchestratorAction>
 {
-    using System;
-    using Newtonsoft.Json.Linq;
-    using DurableTask.Core.Serializing;
-
-    internal class OrchestrationActionConverter : JsonCreationConverter<OrchestratorAction>
+    protected override OrchestratorAction CreateObject(Type objectType, JsonObject jsonObject)
     {
-        protected override OrchestratorAction CreateObject(Type objectType, JObject jObject)
+        if (jsonObject.TryGetPropertyValue("OrchestratorActionType", out JsonNode actionTypeNode))
         {
-            if (jObject.TryGetValue("OrchestratorActionType", StringComparison.OrdinalIgnoreCase, out JToken actionType))
+            var type = (OrchestratorActionType)int.Parse(actionTypeNode.ToString());
+            return type switch
             {
-                var type = (OrchestratorActionType)int.Parse((string)actionType);
-                switch (type)
-                {
-                    case OrchestratorActionType.CreateTimer:
-                        return new CreateTimerOrchestratorAction();
-                    case OrchestratorActionType.OrchestrationComplete:
-                        return new OrchestrationCompleteOrchestratorAction();
-                    case OrchestratorActionType.ScheduleOrchestrator:
-                        return new ScheduleTaskOrchestratorAction();
-                    case OrchestratorActionType.CreateSubOrchestration:
-                        return new CreateSubOrchestrationAction();
-                    default:
-                        throw new NotSupportedException("Unrecognized action type.");
-                }
-            }
-
-            throw new NotSupportedException("Action Type not provided.");
+                OrchestratorActionType.CreateTimer => new CreateTimerOrchestratorAction(),
+                OrchestratorActionType.OrchestrationComplete => new OrchestrationCompleteOrchestratorAction(),
+                OrchestratorActionType.ScheduleOrchestrator => new ScheduleTaskOrchestratorAction(),
+                OrchestratorActionType.CreateSubOrchestration => new CreateSubOrchestrationAction(),
+                _ => throw new NotSupportedException("Unrecognized action type.")
+            };
         }
+
+        throw new NotSupportedException("Action Type not provided.");
     }
 }

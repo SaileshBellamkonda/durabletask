@@ -11,44 +11,42 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core
+namespace DurableTask.Core;
+/// <summary>
+/// Class representing the result of a purge operation.
+/// </summary>
+public class PurgeResult
 {
     /// <summary>
-    /// Class representing the result of a purge operation.
+    /// Initializes a new instance of the <see cref="PurgeResult" /> class.
     /// </summary>
-    public class PurgeResult
+    /// <param name="deletedInstanceCount">The number of instances deleted.</param>
+    public PurgeResult(int deletedInstanceCount)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PurgeResult" /> class.
-        /// </summary>
-        /// <param name="deletedInstanceCount">The number of instances deleted.</param>
-        public PurgeResult(int deletedInstanceCount)
-        {
-            this.DeletedInstanceCount = deletedInstanceCount;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PurgeResult" /> class.
-        /// </summary>
-        /// <param name="deletedInstanceCount">The number of instances deleted.</param>
-        /// <param name="isComplete">A value indicating whether the purge operation is complete. 
-        /// If true, the purge operation is complete. All instances were purged.
-        /// If false, not all instances were purged. Please purge again.
-        /// If null, whether or not all instances were purged is undefined.</param>
-        public PurgeResult(int deletedInstanceCount, bool? isComplete)
-        {
-            this.DeletedInstanceCount = deletedInstanceCount;
-            this.IsComplete = isComplete;
-        }
-
-        /// <summary>
-        /// Number of instances deleted during this execution of the purge operation.
-        /// </summary>
-        public int DeletedInstanceCount { get; }
-
-        /// <summary>
-        /// Gets a value indicating whether the purge operation is complete.
-        /// </summary>
-        public bool? IsComplete { get; }
+        this.DeletedInstanceCount = deletedInstanceCount;
     }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PurgeResult" /> class.
+    /// </summary>
+    /// <param name="deletedInstanceCount">The number of instances deleted.</param>
+    /// <param name="isComplete">A value indicating whether the purge operation is complete. 
+    /// If true, the purge operation is complete. All instances were purged.
+    /// If false, not all instances were purged. Please purge again.
+    /// If null, whether or not all instances were purged is undefined.</param>
+    public PurgeResult(int deletedInstanceCount, bool? isComplete)
+    {
+        this.DeletedInstanceCount = deletedInstanceCount;
+        this.IsComplete = isComplete;
+    }
+
+    /// <summary>
+    /// Number of instances deleted during this execution of the purge operation.
+    /// </summary>
+    public int DeletedInstanceCount { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the purge operation is complete.
+    /// </summary>
+    public bool? IsComplete { get; }
 }

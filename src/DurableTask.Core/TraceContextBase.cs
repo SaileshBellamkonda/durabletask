@@ -11,208 +11,216 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core
+namespace DurableTask.Core;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using DurableTask.Core.Common;
+
+/// <summary>
+/// TraceContext keep the correlation value.
+/// </summary>
+public abstract class TraceContextBase
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Reflection;
-    using DurableTask.Core.Common;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    private static readonly JsonSerializerOptions serializerOptions;
 
     /// <summary>
-    /// TraceContext keep the correlation value.
+    /// Default constructor 
     /// </summary>
-    public abstract class TraceContextBase
+    protected TraceContextBase()
     {
-        private static readonly JsonSerializer serializer;
+        OrchestrationTraceContexts = new();
+    }
 
-        /// <summary>
-        /// Default constructor 
-        /// </summary>
-        protected TraceContextBase()
+    static TraceContextBase()
+    {
+        // Configure options to support polymorphic serialization with type discriminator
+        CustomJsonSerializerOptions = new JsonSerializerOptions()
         {
-            OrchestrationTraceContexts = new Stack<TraceContextBase>();
-        }
+            WriteIndented = false,
+            PropertyNameCaseInsensitive = true,
+            IncludeFields = false,
+            // Note: System.Text.Json doesn't have built-in TypeNameHandling like Newtonsoft
+            // For Phase 2, we rely on manual type resolution in Restore() method
+            ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve,
+        };
 
-        static TraceContextBase()
-        {
-            CustomJsonSerializerSettings = new JsonSerializerSettings()
-            {
-                TypeNameHandling = TypeNameHandling.Objects,
-                PreserveReferencesHandling = PreserveReferencesHandling.Objects,
-                ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
-            };
-
-            serializer = JsonSerializer.Create(CustomJsonSerializerSettings);   
-        }
-
-        /// <summary>
-        /// Start time of this telemetry
-        /// </summary>
-        public DateTimeOffset StartTime { get; set; }
-
-        /// <summary>
-        /// Type of this telemetry.
-        /// Request Telemetry or Dependency Telemetry.
-        /// Use
-        /// <see cref="TelemetryType"/> 
-        /// </summary>
-        public TelemetryType TelemetryType { get; set; }
-
-        /// <summary>
-        /// OrchestrationState save the state of the 
-        /// </summary>
-        public Stack<TraceContextBase> OrchestrationTraceContexts { get; set; }
-
-        /// <summary>
-        /// Keep OperationName in case, don't have an Activity in this context
-        /// </summary>
-        public string OperationName { get; set; }
-
-        /// <summary>
-        /// Current Activity only managed by this concrete class.
-        /// This property is not serialized.
-        /// </summary>
-        [JsonIgnore]
-        internal Activity CurrentActivity { get; set; }
-
-        /// <summary>
-        /// Return if the orchestration is on replay
-        /// </summary>
-        /// <returns></returns>
-        [JsonIgnore]
-        public bool IsReplay { get; set; } = false;
-
-        /// <summary>
-        /// Duration of this context. Valid after call Stop() method.
-        /// </summary>
-        [JsonIgnore]
-        public abstract TimeSpan Duration { get; }
-
-        [JsonIgnore]
-        static JsonSerializerSettings CustomJsonSerializerSettings { get; }
-
-
-        /// <summary>
-        /// Serializable Json string of TraceContext
-        /// </summary>
-        [JsonIgnore]
-        public string SerializableTraceContext =>
-            Utils.SerializeToJson(serializer, this);
-
-        /// <summary>
-        /// Telemetry.Id Used for sending telemetry. refer this URL
-        /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.applicationinsights.extensibility.implementation.operationtelemetry?view=azure-dotnet
-        /// </summary>
-        [JsonIgnore]
-        public abstract string TelemetryId { get; }
-
-        /// <summary>
-        /// Telemetry.Context.Operation.Id Used for sending telemetry refer this URL
-        /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.applicationinsights.extensibility.implementation.operationtelemetry?view=azure-dotnet
-        /// </summary>
-        [JsonIgnore]
-        public abstract string TelemetryContextOperationId { get; }
-
-        /// <summary>
-        /// Get RequestTraceContext of Current Orchestration
-        /// </summary>
-        /// <returns></returns>
-        public TraceContextBase GetCurrentOrchestrationRequestTraceContext()
-        {
-            foreach(TraceContextBase element in OrchestrationTraceContexts)
-            {
-                if (TelemetryType.Request == element.TelemetryType) return element;
-            }
-
-            throw new InvalidOperationException("Can not find RequestTraceContext");
-        }
-
-        /// <summary>
-        /// Telemetry.Context.Operation.ParentId Used for sending telemetry refer this URL
-        /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.applicationinsights.extensibility.implementation.operationtelemetry?view=azure-dotnet
-        /// </summary>
-        [JsonIgnore]
-        public abstract string TelemetryContextOperationParentId { get; }
-
-        /// <summary>
-        /// Set Parent TraceContext and Start the context
-        /// </summary>
-        /// <param name="parentTraceContext"> Parent Trace</param>
-        public abstract void SetParentAndStart(TraceContextBase parentTraceContext);
-
-        /// <summary>
-        /// Start TraceContext as new
-        /// </summary>
-        public abstract void StartAsNew();
-
-        /// <summary>
-        /// Stop TraceContext
-        /// </summary>
-        public void Stop() => CurrentActivity?.Stop();
-
-        /// <summary>
-        /// Set Activity.Current to CurrentActivity
-        /// </summary>
-        public void SetActivityToCurrent()
-        {
-            Activity.Current = CurrentActivity;
-        }
-
-        /// <summary>
-        /// Restore TraceContext sub class
-        /// </summary>
-        /// <param name="json">Serialized json of TraceContext sub classes</param>
-        /// <returns></returns>
-        public static TraceContextBase Restore(string json)
-        {
-            // If the JSON is empty, we assume to have an empty context
-            if (string.IsNullOrEmpty(json))
-            {
-                return TraceContextFactory.Empty;
-            }
-
-            // Obtain typename and validate that it is a subclass of `TraceContextBase`.
-            // If it's not, we throw an exception.
-            Type traceContextType = null;
-            Type traceContextBasetype = typeof(TraceContextBase);
-
-            JToken typeName = JObject.Parse(json)["$type"];
-            traceContextType = Type.GetType(typeName.Value<string>());
-            if (!traceContextType.IsSubclassOf(traceContextBasetype))
-            {
-                string typeNameStr = typeName.ToString();
-                string baseNameStr = traceContextBasetype.ToString();
-                throw new Exception($"Serialized TraceContext type ${typeNameStr} is not a subclass of ${baseNameStr}." +
-                    "This probably means something went wrong in serializing the TraceContext.");
-            }
-
-            // De-serialize the object now that we now it's safe
-            var restored = Utils.DeserializeFromJson(
-                serializer,
-                json,
-                traceContextType) as TraceContextBase;
-            restored.OrchestrationTraceContexts = new Stack<TraceContextBase>(restored.OrchestrationTraceContexts);
-            return restored;
-        }
+        serializerOptions = CustomJsonSerializerOptions;   
     }
 
     /// <summary>
-    /// Telemetry Type
+    /// Start time of this telemetry
     /// </summary>
-    public enum TelemetryType
-    {
-        /// <summary>
-        /// Request Telemetry
-        /// </summary>
-        Request,
+    public DateTimeOffset StartTime { get; set; }
 
-        /// <summary>
-        /// Dependency Telemetry
-        /// </summary>
-        Dependency,
+    /// <summary>
+    /// Type of this telemetry.
+    /// Request Telemetry or Dependency Telemetry.
+    /// Use
+    /// <see cref="TelemetryType"/> 
+    /// </summary>
+    public TelemetryType TelemetryType { get; set; }
+
+    /// <summary>
+    /// OrchestrationState save the state of the 
+    /// </summary>
+    public Stack<TraceContextBase> OrchestrationTraceContexts { get; set; }
+
+    /// <summary>
+    /// Keep OperationName in case, don't have an Activity in this context
+    /// </summary>
+    public string OperationName { get; set; }
+
+    /// <summary>
+    /// Current Activity only managed by this concrete class.
+    /// This property is not serialized.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    internal Activity CurrentActivity { get; set; }
+
+    /// <summary>
+    /// Return if the orchestration is on replay
+    /// </summary>
+    /// <returns></returns>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsReplay { get; set; } = false;
+
+    /// <summary>
+    /// Duration of this context. Valid after call Stop() method.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public abstract TimeSpan Duration { get; }
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    static JsonSerializerOptions CustomJsonSerializerOptions { get; }
+
+
+    /// <summary>
+    /// Serializable Json string of TraceContext
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string SerializableTraceContext =>
+        Utils.SerializeToJson(serializerOptions, this);
+
+    /// <summary>
+    /// Telemetry.Id Used for sending telemetry. refer this URL
+    /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.applicationinsights.extensibility.implementation.operationtelemetry?view=azure-dotnet
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public abstract string TelemetryId { get; }
+
+    /// <summary>
+    /// Telemetry.Context.Operation.Id Used for sending telemetry refer this URL
+    /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.applicationinsights.extensibility.implementation.operationtelemetry?view=azure-dotnet
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public abstract string TelemetryContextOperationId { get; }
+
+    /// <summary>
+    /// Get RequestTraceContext of Current Orchestration
+    /// </summary>
+    /// <returns></returns>
+    public TraceContextBase GetCurrentOrchestrationRequestTraceContext()
+    {
+        foreach(TraceContextBase element in OrchestrationTraceContexts)
+        {
+            if (TelemetryType.Request == element.TelemetryType) return element;
+        }
+
+        throw new InvalidOperationException("Can not find RequestTraceContext");
     }
+
+    /// <summary>
+    /// Telemetry.Context.Operation.ParentId Used for sending telemetry refer this URL
+    /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.applicationinsights.extensibility.implementation.operationtelemetry?view=azure-dotnet
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public abstract string TelemetryContextOperationParentId { get; }
+
+    /// <summary>
+    /// Set Parent TraceContext and Start the context
+    /// </summary>
+    /// <param name="parentTraceContext"> Parent Trace</param>
+    public abstract void SetParentAndStart(TraceContextBase parentTraceContext);
+
+    /// <summary>
+    /// Start TraceContext as new
+    /// </summary>
+    public abstract void StartAsNew();
+
+    /// <summary>
+    /// Stop TraceContext
+    /// </summary>
+    public void Stop() => CurrentActivity?.Stop();
+
+    /// <summary>
+    /// Set Activity.Current to CurrentActivity
+    /// </summary>
+    public void SetActivityToCurrent()
+    {
+        Activity.Current = CurrentActivity;
+    }
+
+    /// <summary>
+    /// Restore TraceContext sub class
+    /// </summary>
+    /// <param name="json">Serialized json of TraceContext sub classes</param>
+    /// <returns></returns>
+    public static TraceContextBase Restore(string json)
+    {
+        // If the JSON is empty, we assume to have an empty context
+        if (string.IsNullOrEmpty(json))
+        {
+            return TraceContextFactory.Empty;
+        }
+
+        // Parse JSON to determine the type
+        // System.Text.Json with ReferenceHandler.Preserve uses "$type" for type information
+        Type traceContextType = null;
+        Type traceContextBasetype = typeof(TraceContextBase);
+
+        using (JsonDocument doc = JsonDocument.Parse(json))
+        {
+            if (doc.RootElement.TryGetProperty("$type", out JsonElement typeElement))
+            {
+                string typeString = typeElement.GetString();
+                traceContextType = Type.GetType(typeString);
+            }
+        }
+
+        if (traceContextType == null || !traceContextType.IsSubclassOf(traceContextBasetype))
+        {
+            string baseNameStr = traceContextBasetype.ToString();
+            throw new Exception($"Serialized TraceContext type is not a subclass of ${baseNameStr}. " +
+                "This probably means something went wrong in serializing the TraceContext.");
+        }
+
+        // De-serialize the object now that we know it's safe
+        var restored = Utils.DeserializeFromJson(
+            serializerOptions,
+            json,
+            traceContextType) as TraceContextBase;
+        restored.OrchestrationTraceContexts = new Stack<TraceContextBase>(restored.OrchestrationTraceContexts);
+        return restored;
+    }
+}
+
+/// <summary>
+/// Telemetry Type
+/// </summary>
+public enum TelemetryType
+{
+    /// <summary>
+    /// Request Telemetry
+    /// </summary>
+    Request,
+
+    /// <summary>
+    /// Dependency Telemetry
+    /// </summary>
+    Dependency,
 }

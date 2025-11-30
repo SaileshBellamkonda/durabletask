@@ -10,28 +10,26 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
-#nullable enable
-namespace DurableTask.Core.Entities.EventFormat
+// #nullable enable /* Commented out for Phase 1 - will be re-enabled in Phase 3 */
+namespace DurableTask.Core.Entities.EventFormat;
+using System;
+
+/// <summary>
+/// Determines event names to use for messages sent to and from entities.
+/// </summary>
+internal static class EntityMessageEventNames
 {
-    using System;
+    public static string RequestMessageEventName => "op";
 
-    /// <summary>
-    /// Determines event names to use for messages sent to and from entities.
-    /// </summary>
-    internal static class EntityMessageEventNames
-    {
-        public static string RequestMessageEventName => "op";
+    public static string ReleaseMessageEventName => "release";
 
-        public static string ReleaseMessageEventName => "release";
+    public static string ContinueMessageEventName => "continue";
 
-        public static string ContinueMessageEventName => "continue";
+    public static string ScheduledRequestMessageEventName(DateTime scheduledUtc) => $"op@{scheduledUtc:o}";
 
-        public static string ScheduledRequestMessageEventName(DateTime scheduledUtc) => $"op@{scheduledUtc:o}";
+    public static string ResponseMessageEventName(Guid requestId) => requestId.ToString();
 
-        public static string ResponseMessageEventName(Guid requestId) => requestId.ToString();
+    public static bool IsRequestMessage(string eventName) => eventName.StartsWith("op");
 
-        public static bool IsRequestMessage(string eventName) => eventName.StartsWith("op");
-
-        public static bool IsReleaseMessage(string eventName) => eventName == "release";
-    }
+    public static bool IsReleaseMessage(string eventName) => eventName == "release";
 }
