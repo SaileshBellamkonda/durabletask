@@ -27,7 +27,7 @@ public class OrchestratorExecutionResult
     /// The list of actions resulting from the orchestrator execution.
     /// </summary>
     [JsonPropertyName("actions")]
-    public IEnumerable<OrchestratorAction> Actions { get; set; } = Array.Empty<OrchestratorAction>();
+    public IEnumerable<OrchestratorAction> Actions { get; set; } = [];
 
     /// <summary>
     /// The custom status, if any, of the orchestrator.
@@ -56,14 +56,14 @@ public class OrchestratorExecutionResult
     {
         return new OrchestratorExecutionResult
         {
-            Actions = new List<OrchestratorAction>
-            {
+            Actions =
+            [
                 new OrchestrationCompleteOrchestratorAction
                 {
                     OrchestrationStatus = OrchestrationStatus.Failed,
                     Result = Utils.SerializeToJson((new { message, details })),
                 },
-            },
+            ],
         };
     }
 }

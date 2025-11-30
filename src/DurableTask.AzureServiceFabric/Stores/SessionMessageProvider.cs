@@ -37,7 +37,7 @@ class SessionMessageProvider : MessageProviderBase<Guid, TaskMessageItem>
 
     public async Task<List<Message<Guid, TaskMessageItem>>> ReceiveBatchAsync()
     {
-        List<Message<Guid, TaskMessageItem>> result = new List<Message<Guid, TaskMessageItem>>();
+        List<Message<Guid, TaskMessageItem>> result = [];
         if (!IsStopped())
         {
             await this.EnumerateItems(kvp => result.Add(new Message<Guid, TaskMessageItem>(kvp.Key, kvp.Value)));

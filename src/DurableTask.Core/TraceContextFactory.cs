@@ -50,18 +50,12 @@ public class TraceContextFactory
     /// </summary>
     public static TraceContextBase Empty { get; } = new NullObjectTraceContext();
 
-    static ITraceContextFactory CreateFactory()
+    static ITraceContextFactory CreateFactory() => CorrelationSettings.Current.Protocol switch
     {
-        switch (CorrelationSettings.Current.Protocol)
-        {
-            case Protocol.W3CTraceContext:
-                return new W3CTraceContextFactory();                
-            case Protocol.HttpCorrelationProtocol:
-                return new HttpCorrelationProtocolTraceContextFactory();
-            default:
-                throw new NotSupportedException($"{CorrelationSettings.Current.Protocol} is not supported. Check the CorrelationSettings.Current.Protocol");
-        }
-    }
+        Protocol.W3CTraceContext => new W3CTraceContextFactory(),
+        Protocol.HttpCorrelationProtocol => new HttpCorrelationProtocolTraceContextFactory(),
+        _ => throw new NotSupportedException($"{CorrelationSettings.Current.Protocol} is not supported. Check the CorrelationSettings.Current.Protocol")
+    };
 
     interface ITraceContextFactory
     {

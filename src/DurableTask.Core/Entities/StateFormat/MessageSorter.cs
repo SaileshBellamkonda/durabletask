@@ -71,7 +71,7 @@ internal class MessageSorter
 
             if (LastSentToInstance != null)
             {
-                List<string> expired = new List<string>();
+                List<string> expired = [];
 
                 foreach (var kvp in LastSentToInstance)
                 {
@@ -131,7 +131,7 @@ internal class MessageSorter
             // deliver any messages that were held in the receive buffers
             // but are now past the reorder window
 
-            List<string> buffersToRemove = new List<string>();
+            List<string> buffersToRemove = [];
 
             if (ReceivedFromInstance != null)
             {
@@ -221,7 +221,7 @@ internal class MessageSorter
             // this message is waiting for a non-delivered predecessor in the window, buffer it
             if (receiveBuffer.Buffered == null)
             {
-                receiveBuffer.Buffered = new SortedDictionary<DateTime, RequestMessage>();
+                receiveBuffer.Buffered = new();
             }
 
             receiveBuffer.Buffered[message.Timestamp] = message;

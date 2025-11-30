@@ -75,11 +75,11 @@ public class LocalOrchestrationService : IOrchestrationService, IOrchestrationSe
         this.orchestratorQueue = new PeekLockSessionQueue();
         this.workerQueue = new PeekLockQueue();
 
-        this.sessionState = new Dictionary<string, byte[]>();
+        this.sessionState = new();
 
-        this.timerMessages = new List<TaskMessage>();
-        this.instanceStore = new Dictionary<string, Dictionary<string, OrchestrationState>>();
-        this.orchestrationWaiters = new ConcurrentDictionary<string, TaskCompletionSource<OrchestrationState>>();
+        this.timerMessages = [];
+        this.instanceStore = new();
+        this.orchestrationWaiters = new();
         this.cancellationTokenSource = new CancellationTokenSource();
     }
 
@@ -199,7 +199,7 @@ public class LocalOrchestrationService : IOrchestrationService, IOrchestrationSe
         {
             if (!this.instanceStore.TryGetValue(creationMessage.OrchestrationInstance.InstanceId, out Dictionary<string, OrchestrationState> ed))
             {
-                ed = new Dictionary<string, OrchestrationState>();
+                ed = new();
                 this.instanceStore[creationMessage.OrchestrationInstance.InstanceId] = ed;
             }
 
@@ -365,7 +365,7 @@ public class LocalOrchestrationService : IOrchestrationService, IOrchestrationSe
             }
             else
             {
-                response = new List<OrchestrationState>();
+                response = [];
             }
         }
 
@@ -487,7 +487,7 @@ public class LocalOrchestrationService : IOrchestrationService, IOrchestrationSe
     {
         if (!this.instanceStore.TryGetValue(runtimeState.OrchestrationInstance.InstanceId, out Dictionary<string, OrchestrationState> mapState))
         {
-            mapState = new Dictionary<string, OrchestrationState>();
+            mapState = new();
             this.instanceStore[runtimeState.OrchestrationInstance.InstanceId] = mapState;
         }
 

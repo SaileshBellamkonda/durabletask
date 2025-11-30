@@ -815,10 +815,7 @@ public sealed class TaskHubClient
     /// <param name="reason">Reason for terminating the instance</param>
     public async Task TerminateInstanceAsync(OrchestrationInstance orchestrationInstance, string reason)
     {
-        if (orchestrationInstance == null)
-        {
-            throw new ArgumentNullException(nameof(orchestrationInstance));
-        }
+        ArgumentNullException.ThrowIfNull(orchestrationInstance);
 
         if (string.IsNullOrWhiteSpace(orchestrationInstance.InstanceId))
         {
@@ -836,10 +833,7 @@ public sealed class TaskHubClient
     /// <param name="reason">Reason for suspending the instance</param>
     public async Task SuspendInstanceAsync(OrchestrationInstance orchestrationInstance, string? reason = null)
     {
-        if (orchestrationInstance == null)
-        {
-            throw new ArgumentNullException(nameof(orchestrationInstance));
-        }
+        ArgumentNullException.ThrowIfNull(orchestrationInstance);
 
         if (string.IsNullOrWhiteSpace(orchestrationInstance.InstanceId))
         {
@@ -864,10 +858,7 @@ public sealed class TaskHubClient
     /// <param name="reason">Reason for resuming the instance</param>
     public async Task ResumeInstanceAsync(OrchestrationInstance orchestrationInstance, string? reason = null)
     {
-        if (orchestrationInstance == null)
-        {
-            throw new ArgumentNullException(nameof(orchestrationInstance));
-        }
+        ArgumentNullException.ThrowIfNull(orchestrationInstance);
 
         if (string.IsNullOrWhiteSpace(orchestrationInstance.InstanceId))
         {

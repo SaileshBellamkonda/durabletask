@@ -23,19 +23,14 @@ internal class OrchestrationActionConverter : JsonCreationConverter<Orchestrator
         if (jsonObject.TryGetPropertyValue("OrchestratorActionType", out JsonNode actionTypeNode))
         {
             var type = (OrchestratorActionType)int.Parse(actionTypeNode.ToString());
-            switch (type)
+            return type switch
             {
-                case OrchestratorActionType.CreateTimer:
-                    return new CreateTimerOrchestratorAction();
-                case OrchestratorActionType.OrchestrationComplete:
-                    return new OrchestrationCompleteOrchestratorAction();
-                case OrchestratorActionType.ScheduleOrchestrator:
-                    return new ScheduleTaskOrchestratorAction();
-                case OrchestratorActionType.CreateSubOrchestration:
-                    return new CreateSubOrchestrationAction();
-                default:
-                    throw new NotSupportedException("Unrecognized action type.");
-            }
+                OrchestratorActionType.CreateTimer => new CreateTimerOrchestratorAction(),
+                OrchestratorActionType.OrchestrationComplete => new OrchestrationCompleteOrchestratorAction(),
+                OrchestratorActionType.ScheduleOrchestrator => new ScheduleTaskOrchestratorAction(),
+                OrchestratorActionType.CreateSubOrchestration => new CreateSubOrchestrationAction(),
+                _ => throw new NotSupportedException("Unrecognized action type.")
+            };
         }
 
         throw new NotSupportedException("Action Type not provided.");

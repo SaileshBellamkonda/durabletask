@@ -69,11 +69,11 @@ using Microsoft.ServiceFabric.Data;
 /// </summary>
 class SessionProvider : MessageProviderBase<string, PersistentSession>
 {
-    ConcurrentQueue<string> fetchQueue = new ConcurrentQueue<string>();
-    ConcurrentDictionary<string, LockState> lockedSessions = new ConcurrentDictionary<string, LockState>();
+    ConcurrentQueue<string> fetchQueue = new();
+    ConcurrentDictionary<string, LockState> lockedSessions = new();
 
     ConcurrentDictionary<OrchestrationInstance, SessionMessageProvider> sessionMessageProviders
-        = new ConcurrentDictionary<OrchestrationInstance, SessionMessageProvider>(OrchestrationInstanceComparer.Default);
+        = new(OrchestrationInstanceComparer.Default);
 
     public SessionProvider(IReliableStateManager stateManager, CancellationToken token) : base(stateManager, Constants.OrchestrationDictionaryName, token)
     {
@@ -221,7 +221,7 @@ class SessionProvider : MessageProviderBase<string, PersistentSession>
 
     public async Task<IList<OrchestrationInstance>> TryAppendMessageBatchAsync(ITransaction transaction, IEnumerable<TaskMessageItem> newMessages)
     {
-        List<OrchestrationInstance> modifiedSessions = new List<OrchestrationInstance>();
+        List<OrchestrationInstance> modifiedSessions = [];
 
         var groups = newMessages.GroupBy(m => m.TaskMessage.OrchestrationInstance, OrchestrationInstanceComparer.Default);
 

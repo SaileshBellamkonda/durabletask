@@ -30,8 +30,8 @@ internal class PeekLockSessionQueue
 
     public PeekLockSessionQueue()
     {
-        this.sessionQueue = new List<TaskSession>();
-        this.lockedSessionQueue = new List<TaskSession>();
+        this.sessionQueue = [];
+        this.lockedSessionQueue = [];
     }
 
     public void DropSession(string id)
@@ -83,7 +83,7 @@ internal class PeekLockSessionQueue
             {
                 Id = message.OrchestrationInstance.InstanceId,
                 SessionState = null,
-                Messages = new List<TaskMessage> { message }
+                Messages = [message]
             });
         }
     }

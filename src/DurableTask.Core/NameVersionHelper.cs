@@ -52,10 +52,7 @@ public static class NameVersionHelper
     /// <returns>Name of the object instance's type</returns>
     public static string GetDefaultName(object obj, bool useFullyQualifiedMethodNames)
     {
-        if (obj == null)
-        {
-            throw new ArgumentNullException(nameof(obj));
-        }
+        ArgumentNullException.ThrowIfNull(obj);
 
         string name;
         Type type;
@@ -131,9 +128,9 @@ public static class NameVersionHelper
     {
         if (visited == null)
         {
-            visited = new HashSet<string>();
+            visited = new();
         }
-        List<MethodInfo> result = new List<MethodInfo>();
+        List<MethodInfo> result = [];
         foreach (MethodInfo m in t.GetMethods())
         {
             string name = getMethodUniqueId(m);

@@ -63,7 +63,7 @@ internal class SchedulerState
     {
         if (Queue == null)
         {
-            Queue = new Queue<RequestMessage>();
+            Queue = new();
         }
 
         Queue.Enqueue(operationMessage);
